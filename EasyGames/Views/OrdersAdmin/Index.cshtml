@@ -1,0 +1,139 @@
+﻿@using EasyGames.Models
+@model EasyGames.ViewModels.OrdersAdminIndexVm
+@using Microsoft.AspNetCore.Http.Extensions
+@* this is the admin orders index view
+   it binds to ordersadminindexvm which carries the orders list plus filter sort and paging data
+   the top form renders filters for search status date range and sort order
+   if no orders match it shows an info alert otherwise it displays a table of orders with id date customer total and status
+   each row shows customer name and email and has inline form to update the order status using antiforgery token
+   pagination controls at the bottom let admins move through pages while preserving filters *@
+@{
+    ViewData["Title"] = "Orders";
+    var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
+    var totalPagesSafe = Math.Max(totalPages, 1);
+    var disablePrev = Model.Page <= 1;
+    var disableNext = Model.Page >= totalPagesSafe;
+}
+
+<h1 class="mb-3">Orders</h1>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-sm-3">
+        <input name="q" value="@Model.Q" class="form-control" placeholder="Search id / email / name" />
+    </div>
+    <div class="col-sm-2">
+        <select name="status" class="form-select">
+            <option value="">All statuses</option>
+            @foreach (var s in OrderStatuses.All)
+            {
+                <option value="@s" selected="@(Model.Status == s)">@s</option>
+            }
+        </select>
+    </div>
+    <div class="col-sm-2">
+        <input type="date" name="from" value="@(Model.From?.ToString("yyyy-MM-dd"))" class="form-control" />
+    </div>
+    <div class="col-sm-2">
+        <input type="date" name="to" value="@(Model.To?.ToString("yyyy-MM-dd"))" class="form-control" />
+    </div>
+    <div class="col-sm-2">
+        <select name="sort" class="form-select">
+            <option value="newest" selected="@(Model.Sort == "newest")">Newest</option>
+            <option value="oldest" selected="@(Model.Sort == "oldest")">Oldest</option>
+            <option value="total" selected="@(Model.Sort == "total")">Total (desc)</option>
+        </select>
+    </div>
+    <div class="col-sm-1 d-grid">
+        <button class="btn btn-primary">Filter</button>
+    </div>
+</form>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">No orders match your filters.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Date (UTC)</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Items)
+                {
+                    <tr>
+                        <td>#@o.Id</td>
+                        <td>@o.CreatedUtc.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @o.User?.FullName
+                            <div class="text-muted small">@o.User?.Email</div>
+                        </td>
+                        <td>@o.GrandTotal.ToString("C")</td>
+                        <td>
+                            <span class="badge @(o.Status == "Pending"
+                                                                                  ? "bg-warning text-dark"
+                                                                                  : o.Status == "Fulfilled"
+                                                                                      ? "bg-success"
+                                                                                      : o.Status == "Cancelled"
+                                                                                          ? "bg-secondary"
+                                                                                          : "bg-light text-dark")">
+                        @o.Status
+                    </span>
+                </td>
+                <td class="text-end">
+                    <a asp-action="Details" asp-route-id="@o.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                    <form asp-action="UpdateStatus" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@o.Id" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.GetEncodedPathAndQuery()" />
+                        <select name="status" class="form-select form-select-sm d-inline w-auto me-1">
+                            @foreach (var s in OrderStatuses.All)
+                                    {
+                                        <option value="@s" selected="@(o.Status == s)">@s</option>
+                                    }
+                                </select>
+                                <button class="btn btn-sm btn-primary">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Orders pages" class="d-flex justify-content-between">
+        <a class="btn btn-outline-secondary @(disablePrev ? "disabled" : "")"
+           asp-action="Index"
+           asp-route-status="@Model.Status"
+           asp-route-q="@Model.Q"
+           asp-route-from="@(Model.From?.ToString("yyyy-MM-dd"))"
+           asp-route-to="@(Model.To?.ToString("yyyy-MM-dd"))"
+           asp-route-sort="@Model.Sort"
+           asp-route-page="@(Model.Page - 1)"
+           asp-route-pageSize="@(Model.PageSize)">
+            ‹ Prev
+        </a>
+
+        <div class="align-self-center">Page @Model.Page of @totalPagesSafe (@Model.TotalCount total)</div>
+
+        <a class="btn btn-outline-secondary @(disableNext ? "disabled" : "")"
+           asp-action="Index"
+           asp-route-status="@Model.Status"
+           asp-route-q="@Model.Q"
+           asp-route-from="@(Model.From?.ToString("yyyy-MM-dd"))"
+           asp-route-to="@(Model.To?.ToString("yyyy-MM-dd"))"
+           asp-route-sort="@Model.Sort"
+           asp-route-page="@(Model.Page + 1)"
+           asp-route-pageSize="@(Model.PageSize)">
+            Next ›
+        </a>
+    </nav>
+}

@@ -1,0 +1,53 @@
+﻿@model IReadOnlyList<CartItem>
+@{
+    ViewData["Title"] = "Your Cart";
+    //  binds to ireadonlylist<cartitem> passed from cartcontroller.index
+    //  if there are no items it shows a simple "your cart is empty" message
+    //  otherwise it renders a table of cart lines with name quantity unit price and line total
+    //  each row has inline forms to update quantity or remove the item using post actions protected by antiforgerytoken
+    //  subtotal is calculated server side with model.sum(i => i.linetotal)
+    //  a checkout button links to the checkout action to proceed with order placement
+}
+<h2>Your Cart</h2>
+
+@if (!Model.Any())
+{
+    <p>Your cart is empty.</p>
+}
+else
+{
+    <table class="table">
+        <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>
+                        <form asp-action="Update" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.StockItemId" />
+                            <input type="number" name="qty" value="@item.Quantity" min="0" class="form-control d-inline w-auto" />
+                            <button class="btn btn-sm btn-primary">Update</button>
+                        </form>
+                    </td>
+                    <td>@item.UnitPrice.ToString("C")</td>
+                    <td>@item.LineTotal.ToString("C")</td>
+                    <td>
+                        <form asp-action="Remove" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.StockItemId" />
+                            <button class="btn btn-sm btn-outline-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="text-end">
+        <strong>Subtotal:</strong> @Model.Sum(i => i.LineTotal).ToString("C")
+    </div>
+    <div class="mt-3 text-end">
+        <a asp-action="Checkout" class="btn btn-success">Checkout</a>
+    </div>
+}

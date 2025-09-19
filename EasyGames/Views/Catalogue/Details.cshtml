@@ -1,0 +1,31 @@
+﻿@model EasyGames.Models.StockItem
+@{
+    ViewData["Title"] = "Details";
+}
+<h1>Details</h1>
+@await Html.PartialAsync("_CardDetails", Model)
+@*
+    Refrences:
+    https://learn.microsoft.com/en-us/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-9.0
+*@
+<div class="mt-3">
+    @if (TempData["CartMessage"] is string msg)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @msg
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        //  this block shows a bootstrap alert if a cart message is present
+        //  tempdata["cartmessage"] is set in cartcontroller after add or update actions
+        //  tempdata survives a redirect for one request so the message appears after the user returns to this page
+        //  the alert is dismissible using bootstrap’s js so the user can close it
+        //  this pattern is the post/redirect/get feedback loop recommended in microsoft docs for form submissions
+    }
+    @if (User.IsInRole("Admin"))
+    {
+        <!--If role is admin, you can edit from catalogue ?.id is like a dymanic variable in Django.-->
+        @*{% url %} is used in django to bind urls to links to avoid hard coding. C# uses tag helpers asp-route-* = {% url %}*@
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

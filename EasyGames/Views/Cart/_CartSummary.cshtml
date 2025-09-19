@@ -1,0 +1,21 @@
+﻿@model IReadOnlyList<CartItem>
+@* cartsummary partial view shows a readonly snapshot of the cart
+   this partial is reused inside checkout and other pages to avoid duplicating cart display logic *@
+
+<table class="table">
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Quantity</td>
+                <td>@item.UnitPrice.ToString("C")</td>
+                <td>@item.LineTotal.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="text-end">
+    <strong>Subtotal:</strong> @Model.Sum(i => i.LineTotal).ToString("C")
+</div>

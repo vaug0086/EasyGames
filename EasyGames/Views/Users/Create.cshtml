@@ -1,0 +1,37 @@
+﻿@using EasyGames.Models.Admin
+@model CreateUserVm
+@{
+    ViewData["Title"] = "Create User";
+    @* create user view binds to createuservm and renders a form with email password and an isadmin checkbox
+   it posts to userscontroller.create with antiforgerytoken protection
+   validation messages are shown using dataannotations on the viewmodel
+   admins can use this page to add new users and optionally assign them to the admin role *@
+
+}
+<h2>Create User</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div> 
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" type="email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsAdmin" class="form-check-input" />
+        <label asp-for="IsAdmin" class="form-check-label">Add to Admin role</label>
+    </div>
+
+    <button class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>

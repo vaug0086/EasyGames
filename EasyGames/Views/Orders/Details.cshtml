@@ -1,0 +1,38 @@
+﻿@model EasyGames.Models.Order
+@{
+    //  order details view shows a single order in full
+    //  it binds to an order model from orderscontroller.details
+    //  displays header info like order id created date status and shipping address
+    //  renders a table of orderitems with product name quantity unit price and calculated line total
+    //  shows grand total at the bottom
+    //  this page lets users or admins review the complete contents of an order and confirms stored purchase data
+
+    ViewData["Title"] = $"Order #{Model.Id}";
+}
+
+<h2>Order #@Model.Id</h2>
+
+<p>
+    <strong>Date:</strong> @Model.CreatedUtc.ToLocalTime() &nbsp; |
+    <strong>Status:</strong> @Model.Status
+</p>
+<p><strong>Ship to:</strong> @Model.ShippingName, @Model.ShippingAddress</p>
+
+<table class="table">
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tbody>
+        @foreach (var li in Model.Items)
+        {
+            <tr>
+                <td>@li.StockItem.Name</td>
+                <td>@li.Quantity</td>
+                <td>@li.UnitPriceAtPurchase.ToString("C")</td>
+                <td>@(li.UnitPriceAtPurchase* li.Quantity).ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="text-end">
+    <strong>Grand Total:</strong> @Model.GrandTotal.ToString("C")
+</div>

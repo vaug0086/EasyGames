@@ -1,0 +1,55 @@
+﻿@model EasyGames.Models.StockItem
+
+@*
+    <a> anchor tags are cool. It's the c# equivalent of django's {% url 'catalogue:details' item.id %}
+    I'm pretty sure everything else here is self explantory. Model.ImageUrl if it exists display the image. So on and so forth
+*@
+
+@*Refrences
+    https://learn.microsoft.com/aspnet/core/mvc/views/partial
+    https://learn.microsoft.com/aspnet/core/mvc/views/tag-helpers/built-in/anchor-tag-helper
+    https://getbootstrap.com/docs/5.3/components/card/ (When I close my eyes, I see bootstrap CSS)
+*@
+<div class="card h-100">
+    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+    {
+        <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Name" />
+    }
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <p class="mb-1"><strong>@Model.Category</strong></p>
+        <p class="mb-1">@Model.Price.ToString("C")</p>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="text-muted">@Model.Description</p>
+        }
+    </div>
+    <div class="card-footer bg-transparent border-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">In stock: @Model.Quantity</small>
+            <a class="btn btn-outline-secondary btn-sm"
+               asp-controller="Catalogue" asp-action="Details" asp-route-id="@Model.Id">
+                Details
+            </a>
+        </div>
+
+        @* add to cart form inside the catalogue card
+           this posts to cartcontroller.add with method=post
+           antiforgerytoken protects the request from csrf
+           hidden id field carries the stockitem id
+           hidden returnurl preserves the current catalogue page and query so the controller can redirect back after adding
+           input-group lets the user choose a quantity then submit with the add button
+           this makes it possible to add items directly from the catalogue grid without leaving the page 
+        *@
+
+        <form asp-controller="Cart" asp-action="Add" method="post" class="mt-2">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            <div class="input-group input-group-sm" style="max-width: 200px;">
+                <input type="number" name="qty" value="1" min="1" class="form-control" />
+                <button type="submit" class="btn btn-success">Add</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+﻿@model EasyGames.Models.ViewModels.EditUserVm
+@* edit user view binds to edituservm and posts back to userscontroller.edit
+   it includes hidden id plus inputs for email fullname and dateofbirth
+   antiforgerytoken secures the form
+   validation messages are shown where applicable
+   this page lets an admin update user profile fields and save changes *@
+<h2>Edit User</h2>
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="DateOfBirth" class="form-label"></label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+    </div>
+    <button class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>

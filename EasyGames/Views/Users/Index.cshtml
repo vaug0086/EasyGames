@@ -1,0 +1,82 @@
+﻿@using EasyGames.Models
+@using Microsoft.AspNetCore.Identity
+@model IEnumerable<ApplicationUser>
+@* users index view lists all applicationuser records for admins
+   it shows email fullname dateofbirth id and current roles for each user
+   roles are loaded through usermanager.getrolesasync and displayed as badges
+   each row provides buttons to edit toggle admin role and delete the user secured by antiforgerytoken
+   a create user button links to the create form and tempdata["msg"] shows feedback alerts *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h2>Users</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create User</a>
+</p>
+
+@if (TempData["Msg"] is string msg)
+{
+    <div class="alert alert-success">@msg</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Date of Birth</th>
+            <th>Id</th>
+            <th>Roles</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var roles = await UserManager.GetRolesAsync(u);   // <-- load roles for THIS user
+                                                              <tr>
+                                                                  <td>@u.Email</td>
+                                                                  <td>@u.FullName</td>
+                                                                  <td>@u.DateOfBirth?.ToShortDateString()</td>
+                                                                  <td><small>@u.Id</small></td>
+                                                                  <td>
+                    @if (roles.Count == 0)
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                    else
+                    {
+                        foreach (var r in roles)
+                        {
+                            <span class="badge bg-secondary me-1">@r</span>
+                        }
+                    }
+                </td>
+                <td class="text-end">
+                    <a asp-action="Edit" asp-route-id="@u.Id"
+                       class="btn btn-sm btn-outline-primary me-1">Edit</a>
+
+                    <form asp-action="ToggleAdmin" method="post" class="d-inline me-1">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button class="btn btn-sm btn-outline-secondary">
+                            @(roles.Contains("Admin") ? "Remove Admin" : "Make Admin")
+                        </button>
+                    </form>
+
+                    <form asp-action="Delete" method="post" class="d-inline"
+                          onsubmit="return confirm('Delete this user?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

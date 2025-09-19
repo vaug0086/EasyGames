@@ -1,0 +1,18 @@
+﻿@model IEnumerable<OrderItem>
+@* orderlines partial renders the items in an order
+   it loops through orderitems and displays stock name quantity unit price at purchase and calculated line total
+   used inside order details and thanks views so the markup is reused consistently *@
+<table class="table">
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tbody>
+        @foreach (var li in Model)
+        {
+            <tr>
+                <td>@li.StockItem.Name</td>
+                <td>@li.Quantity</td>
+                <td>@li.UnitPriceAtPurchase.ToString("C")</td>
+                <td>@((li.UnitPriceAtPurchase* li.Quantity).ToString("C"))</td>
+            </tr>
+        }
+    </tbody>
+</table>

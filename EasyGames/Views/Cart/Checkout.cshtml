@@ -1,0 +1,36 @@
+﻿@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+    //  binds to checkoutviewmodel which holds cart items subtotal and shipping info
+    //  if no items it shows "your cart is empty"
+    //  otherwise it renders _cartsummary partial to display the cart lines then shows a form for shipping name and address
+    //  the form posts back to checkout action in cartcontroller with antiforgerytoken included for csrf protection
+    //  dataannotations on checkoutviewmodel drive the asp-validation-for spans to display validation errors
+}
+<h2>Checkout</h2>
+
+@if (!Model.Items.Any())
+{
+    <p>Your cart is empty.</p>
+}
+else
+{
+    <partial name="_CartSummary" model="Model.Items" />
+    <hr />
+    <form asp-action="Checkout" method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label asp-for="ShippingName" class="form-label"></label>
+            <input asp-for="ShippingName" class="form-control" />
+            <span asp-validation-for="ShippingName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ShippingAddress" class="form-label"></label>
+            <textarea asp-for="ShippingAddress" class="form-control"></textarea>
+            <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+        </div>
+        <div class="text-end">
+            <button class="btn btn-primary">Place Order</button>
+        </div>
+    </form>
+}

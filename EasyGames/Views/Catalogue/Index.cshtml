@@ -1,0 +1,110 @@
+﻿@using EasyGames.Models
+@using EasyGames.Models.ViewModels
+
+@* 
+    Catalogue Index View
+    It uses the Uses CatalogueFilterViewModel for searching and filtering.
+    Establishes a search box, category dropdown and sort options.
+    Displays stock items via bootstrap grid using the card partial.
+    Includes pagination with logic to prevent the pages going below zero.
+    The catalogue works only on read only.
+*@
+@model CatalogueFilterViewModel
+@{
+    ViewData["Title"] = "Catalogue";
+    //  If there are 35 items and 12 per page ceiling(35/12) = 3 per page.
+    var totalPages = (int)Math.Ceiling((double)(Model.TotalCount) / Model.PageSize);
+    //  UI stuff based on page number 
+    //  Basically, if the model page is bigger than one than the previous is model.page - 1 or 1 (self explanatory)
+    //  Opposite logic for next
+    int prev = Model.Page > 1 ? Model.Page - 1 : 1;
+    int next = Model.Page < totalPages ? Model.Page + 1 : totalPages;
+}
+
+<h1>Catalogue</h1>
+@if (TempData["CartMessage"] is string msg)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @msg
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    //  this block shows a success alert if a cart message exists in tempdata
+    //  tempdata["cartmessage"] is set in cartcontroller when an item is added or updated in the cart
+    //  tempdata persists across a redirect for one request so the message appears after navigating back to catalogue
+    //  the bootstrap alert is dismissible so the user can close it
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-sm-6 col-md-4">
+        <input name="search" value="@Model.Search" class="form-control" placeholder="Search name or description..." />
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+        <select asp-for="Category" class="form-select" asp-items="Html.GetEnumSelectList<StockCategory>()">
+            <option value="">All categories</option>
+        </select>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+        <select name="sort" class="form-select">
+            <option value="" selected="@(String.IsNullOrEmpty(Model.Sort) ? "selected" : null)">Sort: Name ↑</option>
+            <option value="name_desc" selected="@(Model.Sort == "name_desc" ? "selected" : null)">Name ↓</option>
+            <option value="price_asc" selected="@(Model.Sort == "price_asc" ? "selected" : null)">Price ↑</option>
+            <option value="price_desc" selected="@(Model.Sort == "price_desc" ? "selected" : null)">Price ↓</option>
+        </select>
+    </div>
+
+    <div class="col-sm-6 col-md-2">
+        <button class="btn btn-primary w-100" type="submit">Apply</button>
+    </div>
+
+    <!-- Preserve page size when filtering -->
+    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+</form>
+
+@if (Model.TotalCount == 0)
+{
+    <div class="alert alert-info">No items match your filters.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        @foreach (var item in Model.Items)
+        {
+            <div class="col">
+                @await Html.PartialAsync("_Card", item)
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-3" aria-label="Catalogue pages">
+        <ul class="pagination">
+            <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-search="@Model.Search"
+                   asp-route-category="@(Model.Search)"
+                   asp-route-sort="@Model.Category?.ToString()"
+                   asp-route-page="@prev"
+                   asp-route-pageSize="@Model.PageSize">Previous</a>
+            </li>
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page @Model.Page of @totalPages
+                </span>
+            </li>
+
+            <li class="page-item @(Model.Page >= totalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-search="@Model.Search"
+                   asp-route-category="@(Model.Category?.ToString())"
+                   asp-route-sort="@Model.Sort"
+                   asp-route-page="@next"
+                   asp-route-pageSize="@Model.PageSize">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

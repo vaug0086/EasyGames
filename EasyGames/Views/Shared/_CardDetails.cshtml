@@ -1,0 +1,59 @@
+﻿@model EasyGames.Models.StockItem
+@* 
+    StockItem Details View
+    It displays a signle stockitem from the catalogue.
+    Uses the bootstrap grid system (My hope is that my bootstrap code is so bad I'm never allowed to do webdesign again)
+    <dl> it's a description list! Displays the details. 
+*@
+@*
+    References:
+      https://learn.microsoft.com/aspnet/core/mvc/views/overview
+      https://getbootstrap.com/docs/5.3/layout/grid/
+      https://getbootstrap.com/docs/5.3/content/images/
+*@
+@* add to cart form in the stockitem details page
+   this form posts to cartcontroller.add with method=post
+   antiforgerytoken ensures csrf protection
+   hidden id field carries the stockitem id
+   hidden returnurl carries the current page url so the controller can redirect back after adding
+   quantity input lets the user specify how many units to add
+   submit button labeled add executes the post
+   this makes it possible to add the displayed stockitem directly to the cart from its details view *@
+
+
+<div class="row g-3">
+    <div class="col-md-5">
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.Name" />
+        }
+        else
+        {
+            <div class="border rounded p-5 text-center text-muted">No image</div>
+        }
+    </div>
+    <div class="col-md-7">
+        <dl class="row">
+            <dt class="col-sm-3">Category</dt>
+            <dd class="col-sm-9">@Model.Category</dd>
+            <dt class="col-sm-3">Price</dt>
+            <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+            <dt class="col-sm-3">Quantity</dt>
+            <dd class="col-sm-9">@Model.Quantity</dd>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <dt class="col-sm-3">Description</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+            }
+        </dl>
+        <form asp-controller="Cart" asp-action="Add" method="post" class="mt-2">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            <div class="input-group input-group-sm" style="max-width: 200px;">
+                <input type="number" name="qty" value="1" min="1" class="form-control" />
+                <button type="submit" class="btn btn-success">Add</button>
+            </div>
+        </form>
+    </div>
+</div>

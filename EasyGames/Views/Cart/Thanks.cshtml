@@ -1,0 +1,10 @@
+﻿@model Order
+@{
+    @*
+   This is self-explanatory... I hope *@
+
+    ViewData["Title"] = "Order placed";
+}
+<h2>Thanks!</h2>
+<p>Your order <strong>#@Model.Id</strong> was placed on @Model.CreatedUtc.ToLocalTime().</p>
+<partial name="_OrderLines" model="Model.Items" />
