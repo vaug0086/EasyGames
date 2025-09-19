@@ -103,6 +103,12 @@ if (args.FirstOrDefault(a => a == "--seed" || a == "--deseed") is string flag)
         Seed.SeedingTime(flag, service);
     }
 }
+//  Just call it anyways lol
+using (var scope = app.Services.CreateScope())
+{
+    var service = scope.ServiceProvider;
+    Seed.SeedingTime("--seed", service);
+}
 
 
 

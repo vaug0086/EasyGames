@@ -7,11 +7,15 @@
     <tbody>
         @foreach (var li in Model)
         {
+            
             <tr>
                 <td>@li.StockItem.Name</td>
                 <td>@li.Quantity</td>
                 <td>@li.UnitPriceAtPurchase.ToString("C")</td>
-                <td>@((li.UnitPriceAtPurchase* li.Quantity).ToString("C"))</td>
+                @{ var total = li.UnitPriceAtPurchase * li.Quantity; }
+                @{ var totalstr = total.ToString("C");}
+                <td>@($"{totalstr}")</td>
+                <td>@($"soaifjioas")</td>
             </tr>
         }
     </tbody>

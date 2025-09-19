@@ -27,7 +27,11 @@
                 <td>@li.StockItem.Name</td>
                 <td>@li.Quantity</td>
                 <td>@li.UnitPriceAtPurchase.ToString("C")</td>
-                <td>@(li.UnitPriceAtPurchase* li.Quantity).ToString("C")</td>
+                @{
+                    var total = li.UnitPriceAtPurchase * li.Quantity;
+                    var stringtotal = total.ToString("C");
+                }
+                <td>@(stringtotal)</td>
             </tr>
         }
     </tbody>
