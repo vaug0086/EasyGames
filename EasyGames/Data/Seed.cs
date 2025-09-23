@@ -84,12 +84,20 @@ namespace EasyGames.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             const string adminRole = "Admin";
+            const string proprietorRole = "Proprietor";
             const string adminEmail = "admin@easygames.com";
-            const string adminPassword = "Admin123!"; 
+            const string adminPassword = "Admin123!";
 
+            // Create Admin role
             if (!roleManager.RoleExistsAsync(adminRole).Result)
             {
                 roleManager.CreateAsync(new IdentityRole(adminRole)).Wait();
+            }
+
+            // Create Proprietor role
+            if (!roleManager.RoleExistsAsync(proprietorRole).Result)
+            {
+                roleManager.CreateAsync(new IdentityRole(proprietorRole)).Wait();
             }
             var adminUser = userManager.FindByEmailAsync(adminEmail).Result;
             if (adminUser == null)
@@ -111,6 +119,110 @@ namespace EasyGames.Data
             {
                 userManager.AddToRoleAsync(adminUser, adminRole).Wait();
             }
+
+            // Create test proprietor user
+            const string proprietorEmail = "proprietor@easygames.com";
+            const string proprietorPassword = "Proprietor123!";
+
+            var proprietorUser = userManager.FindByEmailAsync(proprietorEmail).Result;
+            if (proprietorUser == null)
+            {
+                proprietorUser = new ApplicationUser
+                {
+                    UserName = proprietorEmail,
+                    Email = proprietorEmail,
+                    EmailConfirmed = true,
+                    FullName = "Test Proprietor"
+                };
+                var result = userManager.CreateAsync(proprietorUser, proprietorPassword).Result;
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Failed to create proprietor user: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+            if (!userManager.IsInRoleAsync(proprietorUser, proprietorRole).Result)
+            {
+                userManager.AddToRoleAsync(proprietorUser, proprietorRole).Wait();
+            }
+
+            // Create regular user
+            const string userEmail = "user@easygames.com";
+            const string userPassword = "User123!";
+
+            var regularUser = userManager.FindByEmailAsync(userEmail).Result;
+            if (regularUser == null)
+            {
+                regularUser = new ApplicationUser
+                {
+                    UserName = userEmail,
+                    Email = userEmail,
+                    EmailConfirmed = true,
+                    FullName = "Test User"
+                };
+                var result = userManager.CreateAsync(regularUser, userPassword).Result;
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Failed to create regular user: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+
+            // Create shop and stock data
+            SeedShopData(serviceProvider);
+        }
+
+        private static void SeedShopData(IServiceProvider serviceProvider)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            // Only seed shop if it doesn't exist
+            if (db.Shops.Any()) return;
+
+            var proprietorUser = userManager.FindByEmailAsync("proprietor@easygames.com").Result;
+            if (proprietorUser == null) return;
+
+            // Create test shop
+            var testShop = new Shop
+            {
+                Name = "Game Corner Shop",
+                Address = "123 Main Street, Darwin NT 0800",
+                ProprietorUserId = proprietorUser.Id
+            };
+
+            db.Shops.Add(testShop);
+            db.SaveChanges();
+
+            // Add some stock items to the shop
+            var stockItems = db.StockItems.Take(10).ToList(); // Get first 10 items from seed data
+
+            foreach (var item in stockItems)
+            {
+                // Calculate safe transfer amount (max 50% of available stock, minimum 1, maximum 15)
+                var maxTransfer = Math.Min(item.Quantity / 2, 15);
+                var transferAmount = maxTransfer > 0 ? Random.Shared.Next(1, Math.Max(2, maxTransfer + 1)) : 0;
+
+                if (transferAmount > 0)
+                {
+                    var shopStock = new ShopStock
+                    {
+                        ShopId = testShop.ShopId,
+                        StockItemId = item.Id,
+                        QtyOnHand = transferAmount,
+                        LowStockThreshold = 5,
+                        InheritedBuyPrice = item.BuyPrice,
+                        InheritedSellPrice = item.SellPrice
+                    };
+                    db.ShopStock.Add(shopStock);
+
+                    // Reduce main inventory by the amount transferred to shop
+                    item.Quantity -= transferAmount;
+                }
+            }
+
+            db.SaveChanges();
         }
     }
 }

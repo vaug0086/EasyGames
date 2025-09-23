@@ -26,7 +26,7 @@
 using System.Linq;                     
 using System.Threading.Tasks;          //   Async stuff. Needed for webapps.
 using EasyGames.Data;
-using EasyGames.Models;              
+using EasyGames.Models;
 using EasyGames.Models.ViewModels;    
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -132,7 +132,29 @@ namespace EasyGames.Controllers
             //  to make any changes. Return null if not found.
             var item = await _context.StockItems.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
             if (item == null) return NotFound();
-            return View(item);
+
+            // Get shop stock information for this item
+            var shopStock = await _context.ShopStock
+                .AsNoTracking() // just reading, don't track changes
+                .Include(ss => ss.Shop) // adds related Shop for each ShopStock record
+                .Where(ss => ss.StockItemId == id && ss.QtyOnHand > 0) // filters only shops that have this stock item (i.e., >0)
+                .Select(ss => new ShopStockViewModel // we use a ViewModel which is a much simpler entity with only the necessary info
+                {
+                    ShopName = ss.Shop!.Name,
+                    ShopAddress = ss.Shop.Address,
+                    QtyOnHand = ss.QtyOnHand,
+                    IsLowStock = ss.IsLowStock
+                })
+                .OrderBy(ss => ss.ShopName) // alphabetical order
+                .ToListAsync(); // converted to list and fetched async (no blocking)
+
+            var viewModel = new CatalogueDetailsViewModel // chuck all this info into an even more overarching view model before passing it to the view
+            {
+                StockItem = item,
+                ShopStock = shopStock
+            };
+
+            return View(viewModel);
         }
     }
 }

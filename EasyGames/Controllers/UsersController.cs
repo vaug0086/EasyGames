@@ -25,6 +25,7 @@ namespace EasyGames.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private const string AdminRole = "Admin";
+        private const string ProprietorRole = "Proprietor";
 
         public UsersController(UserManager<ApplicationUser> userManager,
                                RoleManager<IdentityRole> roleManager)
@@ -139,6 +140,29 @@ namespace EasyGames.Controllers
                 : await _userManager.AddToRoleAsync(user, AdminRole);
 
             TempData["Msg"] = result.Succeeded ? "Role updated." :
+                string.Join("; ", result.Errors.Select(e => e.Description));
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        //  ROLE TOGGLE FOR PROPRIETOR
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleProprietor(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null) return NotFound();
+
+            if (!await _roleManager.RoleExistsAsync(ProprietorRole))
+                await _roleManager.CreateAsync(new IdentityRole(ProprietorRole));
+
+            var isProprietor = await _userManager.IsInRoleAsync(user, ProprietorRole);
+
+            var result = isProprietor
+                ? await _userManager.RemoveFromRoleAsync(user, ProprietorRole)
+                : await _userManager.AddToRoleAsync(user, ProprietorRole);
+
+            TempData["Msg"] = result.Succeeded ? "Proprietor role updated." :
                 string.Join("; ", result.Errors.Select(e => e.Description));
 
             return RedirectToAction(nameof(Index));

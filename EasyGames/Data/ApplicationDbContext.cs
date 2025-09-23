@@ -21,6 +21,8 @@ namespace EasyGames.Data
 
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+        public DbSet<Shop> Shops => Set<Shop>();
+        public DbSet<ShopStock> ShopStock => Set<ShopStock>();
         protected override void OnModelCreating(ModelBuilder b)
         {
             base.OnModelCreating(b);
@@ -36,6 +38,35 @@ namespace EasyGames.Data
             {
                 e.Property(p => p.BuyPrice).HasPrecision(18, 2);
                 e.Property(p => p.SellPrice).HasPrecision(18, 2);
+            });
+
+            // we need to explicitly configure Shop and ShopStock
+            // while the other entities can have most of their schema details inferred, these have a lot more custom logic
+            // we need to make sure data integrity is protected!
+            b.Entity<Shop>(e =>
+            {
+                e.HasOne(s => s.Proprietor)
+                 .WithMany()
+                 .HasForeignKey(s => s.ProprietorUserId) // string foreign key to Identity user
+                 .OnDelete(DeleteBehavior.Restrict); // prevent deleting users who own shops
+            });
+
+            b.Entity<ShopStock>(e =>
+            {
+                e.Property(ss => ss.InheritedBuyPrice).HasPrecision(18, 2); // financial precision for money calculations
+                e.Property(ss => ss.InheritedSellPrice).HasPrecision(18, 2); // financial precision for money calculations
+
+                e.HasOne(ss => ss.Shop)
+                 .WithMany(s => s.ShopStock)
+                 .HasForeignKey(ss => ss.ShopId)
+                 .OnDelete(DeleteBehavior.Cascade); // delete shop stock when shop is deleted
+
+                e.HasOne(ss => ss.StockItem)
+                 .WithMany()
+                 .HasForeignKey(ss => ss.StockItemId)
+                 .OnDelete(DeleteBehavior.Restrict); // prevent deleting stock items that are in shops
+
+                e.HasIndex(ss => new { ss.ShopId, ss.StockItemId }).IsUnique(); // prevent duplicate stock items per shop
             });
         }
     }
