@@ -2,7 +2,85 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to the Easy Games store</h1>
+<div class="hero-section bg-primary text-white text-center py-5 mb-5 rounded">
+    <div class="container">
+        <h1 class="display-3 fw-bold">Welcome to EasyGames</h1>
+        <p class="lead fs-4">Your one-stop destination for books, toys, and games</p>
+        <a class="btn btn-light btn-lg mt-3" asp-controller="Catalogue" asp-action="Index">
+            Start Shopping
+        </a>
+    </div>
+</div>
 
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <h2>About EasyGames</h2>
+            <p class="lead">
+                Since 2020, EasyGames has been bringing joy to families and individuals through our carefully curated collection of entertainment products. We believe that play is essential to human happiness, whether you're diving into a captivating book, building with creative toys, or exploring virtual worlds through gaming.
+            </p>
+            <p>
+                Our mission is simple: to make discovering your next favorite book, toy, or game as easy as possible. From timeless classics like <em>The Lord of the Rings</em> and LEGO sets to the latest blockbuster games like <em>Elden Ring</em> and <em>Minecraft</em>, we've got something for every age and interest.
+            </p>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Why Choose EasyGames?</h5>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2">✓ Curated selection of quality products</li>
+                        <li class="mb-2">✓ Competitive prices</li>
+                        <li class="mb-2">✓ Fast and secure checkout</li>
+                        <li class="mb-2">✓ Customer satisfaction guaranteed</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row text-center mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0">
+                <div class="card-body">
+                    <div class="display-1 text-primary mb-3">📚</div>
+                    <h4>Books</h4>
+                    <p>From literary classics to contemporary bestsellers, discover your next great read in our extensive book collection.</p>
+                    <a class="btn btn-outline-primary" asp-controller="Catalogue" asp-action="Index" asp-route-category="Book">Browse Books</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0">
+                <div class="card-body">
+                    <div class="display-1 text-success mb-3">🧸</div>
+                    <h4>Toys</h4>
+                    <p>Spark creativity and imagination with our selection of toys, from classic building blocks to modern interactive games.</p>
+                    <a class="btn btn-outline-success" asp-controller="Catalogue" asp-action="Index" asp-route-category="Toy">Browse Toys</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0">
+                <div class="card-body">
+                    <div class="display-1 text-danger mb-3">🎮</div>
+                    <h4>Games</h4>
+                    <p>Dive into amazing virtual worlds with our collection of the latest and greatest video games across all platforms.</p>
+                    <a class="btn btn-outline-danger" asp-controller="Catalogue" asp-action="Index" asp-route-category="Game">Browse Games</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h3>Ready to Start Your Adventure?</h3>
+                    <p class="mb-4">Join thousands of satisfied customers who have discovered their new favorites at EasyGames.</p>
+                    <a class="btn btn-primary btn-lg me-3" asp-controller="Catalogue" asp-action="Index">View All Products</a>
+                    <a class="btn btn-outline-primary btn-lg" asp-area="Identity" asp-page="/Account/Register">Create Account</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
