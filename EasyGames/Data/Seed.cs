@@ -47,7 +47,7 @@ namespace EasyGames.Data
                 // Games
                 new StockItem { Name = "Animal Crossing: New Horizons", Category = StockCategory.Game, Price = 49.99m, Quantity = 6, ImageUrl = "/images/seeds/game-animal-crossing.jpg" },
                 new StockItem { Name = "Elden Ring", Category = StockCategory.Game, Price = 59.99m, Quantity = 8, ImageUrl = "/images/seeds/game-elden-ring.jpg" },
-                new StockItem { Name = "Fortnite", Category = StockCategory.Game, Price = 10.23, Quantity = 17, ImageUrl = "/images/seeds/game-fortnite.jpeg" },
+                new StockItem { Name = "Fortnite", Category = StockCategory.Game, Price = 10.23m, Quantity = 17, ImageUrl = "/images/seeds/game-fortnite.jpeg" },
                 new StockItem { Name = "God of War", Category = StockCategory.Game, Price = 39.99m, Quantity = 12, ImageUrl = "/images/seeds/game-god-of-war.jpg" },
                 new StockItem { Name = "Halo Infinite", Category = StockCategory.Game, Price = 59.99m, Quantity = 10, ImageUrl = "/images/seeds/game-halo-infinite.png" },
                 new StockItem { Name = "Super Mario Odyssey", Category = StockCategory.Game, Price = 49.99m, Quantity = 15, ImageUrl = "/images/seeds/game-mario-odyssey.jpg" },
