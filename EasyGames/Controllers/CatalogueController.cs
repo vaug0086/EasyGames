@@ -85,10 +85,10 @@ namespace EasyGames.Controllers
                         q = q.OrderByDescending(s => s.Name);
                         break;
                     case "price_asc":
-                        q = q.OrderBy(s => s.Price).ThenBy(s => s.Name);
+                        q = q.OrderBy(s => s.SellPrice).ThenBy(s => s.Name);
                         break;
                     case "price_desc":
-                        q = q.OrderByDescending(s => s.Price).ThenBy(s => s.Name);
+                        q = q.OrderByDescending(s => s.SellPrice).ThenBy(s => s.Name);
                         break;
                     default:
                         q = q.OrderBy(s => s.Name);
@@ -98,8 +98,8 @@ namespace EasyGames.Controllers
             q = sort switch
             {
                 "name_desc" => q.OrderByDescending(s => s.Name),
-                "price_asc" => q.OrderBy(s => s.Price).ThenBy(s => s.Name),
-                "price_desc" => q.OrderByDescending(s => s.Price).ThenBy(s => s.Name),
+                "price_asc" => q.OrderBy(s => s.SellPrice).ThenBy(s => s.Name),
+                "price_desc" => q.OrderByDescending(s => s.SellPrice).ThenBy(s => s.Name),
                 _ => q.OrderBy(s => s.Name)
             };
 

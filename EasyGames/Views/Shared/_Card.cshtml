@@ -18,7 +18,7 @@
     <div class="card-body">
         <h5 class="card-title">@Model.Name</h5>
         <p class="mb-1"><strong>@Model.Category</strong></p>
-        <p class="mb-1">@Model.Price.ToString("C")</p>
+        <p class="mb-1">@Model.SellPrice.ToString("C")</p>
         @if (!string.IsNullOrWhiteSpace(Model.Description))
         {
             <p class="text-muted">@Model.Description</p>

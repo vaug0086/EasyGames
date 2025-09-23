@@ -32,7 +32,11 @@ namespace EasyGames.Data
             });
 
             b.Entity<OrderItem>().Property(p => p.UnitPriceAtPurchase).HasPrecision(18, 2);
-            b.Entity<StockItem>().Property(p => p.Price).HasPrecision(18, 2);
+            b.Entity<StockItem>(e =>
+            {
+                e.Property(p => p.BuyPrice).HasPrecision(18, 2);
+                e.Property(p => p.SellPrice).HasPrecision(18, 2);
+            });
         }
     }
 }

@@ -84,7 +84,7 @@ public class CartController : Controller
                 ModelState.AddModelError("", $"Item '{it.Name}' no longer exists.");
                 return View(vm with { Items = items, Subtotal = items.Sum(i => i.LineTotal) });
             }
-            it.UnitPrice = s.Price;
+            it.UnitPrice = s.SellPrice;
         }
 
         if (!ModelState.IsValid)

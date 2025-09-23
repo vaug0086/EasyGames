@@ -41,7 +41,7 @@ public class CartService : ICartService
             {
                 StockItemId = s.Id,
                 Name = s.Name,
-                UnitPrice = s.Price,
+                UnitPrice = s.SellPrice,
                 Quantity = qty
             });
         }

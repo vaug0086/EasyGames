@@ -25,7 +25,13 @@ namespace EasyGames.Models
 
         [DataType(DataType.Currency)]
         [Precision(18, 2)]
-        public decimal Price { get; set; }
+        [Display(Name = "Buy Price")]
+        public decimal BuyPrice { get; set; }
+
+        [DataType(DataType.Currency)]
+        [Precision(18, 2)]
+        [Display(Name = "Sell Price")]
+        public decimal SellPrice { get; set; }
 
         [Range(0, 100000)]
         public int Quantity { get; set; }
