@@ -29,3 +29,12 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Product card image styling for consistent heights */
+.card-img-top {
+  height: 250px;
+  object-fit: contain;
+  object-position: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
