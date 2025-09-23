@@ -1,0 +1,46 @@
+# 🎮 EasyGames
+
+A modern e-commerce platform for books, toys, and games built with ASP.NET Core 9.0.
+
+## ✨ Features
+
+- 🛒 **Shopping Cart** - Session-based cart with anonymous user support
+- 📦 **Inventory Management** - Complete stock tracking system
+- 🏪 **Multi-Shop Support** - Physical store locations with separate inventory
+- 👥 **Role-Based Access** - Admin, Proprietor, and Customer roles
+- 🔒 **Secure Authentication** - ASP.NET Core Identity integration
+- 📱 **Responsive Design** - Mobile-friendly Bootstrap 5 interface
+
+## 🚀 Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd EasyGames
+   ```
+
+2. **Run with database seeding**
+   ```bash
+   dotnet run --project EasyGames/EasyGames.csproj -- --seed
+   ```
+
+3. **Access the application**
+   - Open your browser to `https://localhost:5001`
+   - Login with one of the pre-configured accounts (see below)
+
+## 👤 Default User Accounts
+
+The application seeds three user roles with test accounts:
+
+| Role | Email | Password | Access |
+|------|-------|----------|---------|
+| 🔧 **Admin** | `admin@easygames.com` | `Admin123!` | Full system access, user management, shop management |
+| 🏪 **Proprietor** | `proprietor@easygames.com` | `Proprietor123!` | Shop stock management, price editing |
+| 🛍️ **Customer** | `user@easygames.com` | `User123!` | Shopping, cart, order history |
+
+## 🎯 University Project
+
+This application was developed as a university project at **Charles Darwin University** and is released under the MIT License.
+
+---
+*🎮 Happy Gaming! 🎮*
