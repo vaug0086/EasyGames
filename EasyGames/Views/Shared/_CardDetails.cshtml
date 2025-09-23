@@ -1,9 +1,9 @@
 ﻿@model EasyGames.Models.StockItem
-@* 
+@*
     StockItem Details View
     It displays a signle stockitem from the catalogue.
     Uses the bootstrap grid system (My hope is that my bootstrap code is so bad I'm never allowed to do webdesign again)
-    <dl> it's a description list! Displays the details. 
+    <dl> it's a description list! Displays the details.
 *@
 @*
     References:
@@ -20,40 +20,89 @@
    submit button labeled add executes the post
    this makes it possible to add the displayed stockitem directly to the cart from its details view *@
 
-
-<div class="row g-3">
-    <div class="col-md-5">
-        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
-        {
-            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.Name" />
-        }
-        else
-        {
-            <div class="border rounded p-5 text-center text-muted">No image</div>
-        }
-    </div>
-    <div class="col-md-7">
-        <dl class="row">
-            <dt class="col-sm-3">Category</dt>
-            <dd class="col-sm-9">@Model.Category</dd>
-            <dt class="col-sm-3">Price</dt>
-            <dd class="col-sm-9">@Model.SellPrice.ToString("C")</dd>
-            <dt class="col-sm-3">Quantity</dt>
-            <dd class="col-sm-9">@Model.Quantity</dd>
-            @if (!string.IsNullOrWhiteSpace(Model.Description))
-            {
-                <dt class="col-sm-3">Description</dt>
-                <dd class="col-sm-9">@Model.Description</dd>
-            }
-        </dl>
-        <form asp-controller="Cart" asp-action="Add" method="post" class="mt-2">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="id" value="@Model.Id" />
-            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-            <div class="input-group input-group-sm" style="max-width: 200px;">
-                <input type="number" name="qty" value="1" min="1" class="form-control" />
-                <button type="submit" class="btn btn-success">Add</button>
+<div class="product-details-container">
+    <div class="row g-4">
+        <!-- Product Image Section -->
+        <div class="col-lg-6">
+            <div class="product-image-wrapper">
+                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <div class="product-image-container">
+                        <img src="@Model.ImageUrl" class="product-image" alt="@Model.Name" />
+                    </div>
+                }
+                else
+                {
+                    <div class="product-image-placeholder">
+                        <i class="bi bi-image fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No image available</p>
+                    </div>
+                }
             </div>
-        </form>
+        </div>
+
+        <!-- Product Information Section -->
+        <div class="col-lg-6">
+            <div class="product-info">
+                <div class="product-header mb-4">
+                    <h1 class="product-title">@Model.Name</h1>
+                    <span class="badge bg-primary fs-6 mb-3">@Model.Category</span>
+                </div>
+
+                <div class="product-price mb-4">
+                    <span class="price-current">@Model.SellPrice.ToString("C")</span>
+                </div>
+
+                <div class="product-details mb-4">
+                    <div class="detail-item">
+                        <span class="detail-label">Availability:</span>
+                        <span class="detail-value">
+                            @if (Model.Quantity > 0)
+                            {
+                                <span class="text-success fw-bold">@Model.Quantity in stock</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger fw-bold">Out of stock</span>
+                            }
+                        </span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <div class="detail-item">
+                            <span class="detail-label">Description:</span>
+                            <span class="detail-value">@Model.Description</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Add to Cart Section -->
+                @if (Model.Quantity > 0)
+                {
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="add-to-cart-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        <div class="quantity-selector mb-3">
+                            <label class="form-label fw-bold">Quantity:</label>
+                            <div class="input-group" style="max-width: 300px;">
+                                <input type="number" name="qty" value="1" min="1" max="@Model.Quantity" class="form-control text-center" />
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>This item is currently out of stock.
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>

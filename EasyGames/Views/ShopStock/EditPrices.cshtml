@@ -1,0 +1,145 @@
+@model EasyGames.Models.ShopStock // strongly typed to ShopStock model 
+
+@{
+    ViewData["Title"] = "Edit Prices";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-1">@Model.StockItem?.Name</h5>
+                <small class="text-muted">Shop: @Model.Shop?.Name</small>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditPrices">
+                    <input type="hidden" asp-for="ShopStockId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Current Buy Price (Inherited)</label>
+                        <div class="form-control-plaintext fw-bold">@Model.InheritedBuyPrice.ToString("C")</div>
+                        <div class="form-text">This is the cost price and cannot be changed</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="InheritedSellPrice" class="form-label">Sell Price</label>
+                        <input asp-for="InheritedSellPrice" class="form-control" step="0.01" />
+                        <span asp-validation-for="InheritedSellPrice" class="text-danger"></span>
+                        <div class="form-text">This is the price customers will pay</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label">Profit per Unit</label>
+                                <div class="form-control-plaintext fw-bold text-success" id="profit-display">
+                                    @((Model.InheritedSellPrice - Model.InheritedBuyPrice).ToString("C"))
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Markup %</label>
+                                <div class="form-control-plaintext fw-bold" id="markup-display">
+                                    @{
+                                        var markup = Model.InheritedBuyPrice > 0 ?
+                                            ((Model.InheritedSellPrice - Model.InheritedBuyPrice) / Model.InheritedBuyPrice * 100) : 0;
+                                    }
+                                    @markup.ToString("F1")%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Update Price</button>
+                        <a asp-action="Index" asp-route-shopId="@Model.ShopId" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Stock Information</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Quantity on Hand:</dt>
+                    <dd class="col-sm-6">@Model.QtyOnHand units</dd>
+
+                    <dt class="col-sm-6">Low Stock Threshold:</dt>
+                    <dd class="col-sm-6">@Model.LowStockThreshold units</dd>
+
+                    <dt class="col-sm-6">Stock Status:</dt>
+                    <dd class="col-sm-6">
+                        @if (Model.IsLowStock)
+                        {
+                            <span class="badge bg-warning">Low Stock</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">OK</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-6">Total Value (Current):</dt>
+                    <dd class="col-sm-6 fw-bold">@Model.LineSellValue.ToString("C")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Pricing Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>Price should be above buy price to ensure profit</li>
+                    <li>Consider competitor pricing</li>
+                    <li>Higher margins for unique or popular items</li>
+                    <li>Lower margins for price-sensitive products</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        // Update profit and markup calculations in real-time
+        // This is an easy browser-side calculation - no server needed and not stored on the server
+
+        // Create currency formatter using server-side culture settings
+        const currencyFormatter = new Intl.NumberFormat('@System.Globalization.CultureInfo.CurrentCulture.Name', {
+            style: 'currency',
+            currency: '@(new System.Globalization.RegionInfo(System.Globalization.CultureInfo.CurrentCulture.Name).ISOCurrencySymbol)'
+        });
+
+        document.querySelector('input[name="InheritedSellPrice"]').addEventListener('input', function() { // JS-based event listener which triggers when the user change the value of Sell Price
+            const sellPrice = parseFloat(this.value) || 0;
+            const buyPrice = @Model.InheritedBuyPrice;
+
+            const profit = sellPrice - buyPrice;
+            const markup = buyPrice > 0 ? ((profit / buyPrice) * 100) : 0;
+
+            // Use server-side culture formatting to match .ToString("C")
+            document.getElementById('profit-display').textContent = currencyFormatter.format(profit);
+            document.getElementById('markup-display').textContent = markup.toFixed(1) + '%';
+
+            // Change color based on profitability
+            const profitElement = document.getElementById('profit-display');
+            if (profit > 0) {
+                profitElement.className = 'form-control-plaintext fw-bold text-success';
+            } else if (profit < 0) {
+                profitElement.className = 'form-control-plaintext fw-bold text-danger';
+            } else {
+                profitElement.className = 'form-control-plaintext fw-bold text-warning';
+            }
+        });
+    </script>
+}

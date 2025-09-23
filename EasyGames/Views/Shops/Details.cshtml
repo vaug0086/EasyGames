@@ -1,0 +1,82 @@
+@model EasyGames.Models.Shop
+
+@{
+    ViewData["Title"] = "Shop Details";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <h4>Shop</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Address)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Address)
+        </dd>
+        <dt class = "col-sm-2">
+            Proprietor
+        </dt>
+        <dd class = "col-sm-10">
+            @(Model.Proprietor?.Email ?? "Not assigned")
+        </dd>
+    </dl>
+</div>
+
+@if (Model.ShopStock.Any())
+{
+    <div class="mt-4">
+        <h5>Shop Stock (@Model.ShopStock.Count items)</h5>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity on Hand</th>
+                    <th>Buy Price</th>
+                    <th>Sell Price</th>
+                    <th>Low Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var stock in Model.ShopStock)
+                {
+                    <tr class="@(stock.IsLowStock ? "table-warning" : "")">
+                        <td>@stock.StockItem?.Name</td>
+                        <td>@stock.QtyOnHand</td>
+                        <td>@stock.InheritedBuyPrice.ToString("C")</td>
+                        <td>@stock.InheritedSellPrice.ToString("C")</td>
+                        <td>
+                            @if (stock.IsLowStock)
+                            {
+                                <span class="badge bg-warning">Low Stock</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">OK</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info mt-4">
+        This shop has no stock items yet.
+    </div>
+}
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model?.ShopId" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

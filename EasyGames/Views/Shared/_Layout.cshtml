@@ -1,8 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using EasyGames.Services
+@using EasyGames.Data
+@using System.Security.Claims
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject ICartService Cart
+@inject ApplicationDbContext DbContext
 @* layout injects identity and cart services shows nav links based on login and role displays cart count badge and
 renders tempdata alerts for user feedback *@
 
@@ -30,17 +33,59 @@ renders tempdata alerts for user feedback *@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Catalogue" asp-action="Index">Shop</a>
+                        </li>
+
+                        @if (User.IsInRole("Proprietor"))
+                        {
+                            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                            var hasShops = DbContext.Shops.Any(s => s.ProprietorUserId == userId);
+
+                            if (hasShops)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link fw-bold text-primary" asp-controller="ShopStock" asp-action="Index">
+                                        <i class="bi bi-shop"></i> My Shop
+                                    </a>
+                                </li>
+                            }
+                        }
+
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="StockItems" asp-action="Index">Stock</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear"></i> Admin
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="StockItems" asp-action="Index">
+                                        <i class="bi bi-box"></i> Stock Items
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Shops" asp-action="Index">
+                                        <i class="bi bi-shop"></i> Manage Shops
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">
+                                        <i class="bi bi-people"></i> Users
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="OrdersAdmin" asp-action="Index">
+                                        <i class="bi bi-clipboard-check"></i> All Orders
+                                    </a></li>
+                                </ul>
                             </li>
                         }
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Catalogue" asp-action="Index">Catalogue</a>
-                        </li>
+
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Orders" asp-action="Index">
+                                    <i class="bi bi-receipt"></i> My Orders
+                                </a>
+                            </li>
+                        }
+
                         <li class="nav-item">
                             <a class="nav-link position-relative" asp-controller="Cart" asp-action="Index">
                                 <i class="bi bi-cart"></i> Cart
@@ -53,21 +98,6 @@ renders tempdata alerts for user feedback *@
                                 }
                             </a>
                         </li>
-                        @if (User.Identity?.IsAuthenticated ?? false)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Orders" asp-action="Index">My Orders</a>
-                            </li>
-                        }
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a asp-controller="Users" asp-action="Index" class="nav-link">Users</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="OrdersAdmin" asp-action="Index">Orders</a>
-                            </li>
-                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

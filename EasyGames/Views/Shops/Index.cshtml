@@ -1,0 +1,92 @@
+@model IEnumerable<EasyGames.Models.Shop> // strongly typed to colection of shops
+
+@{
+    ViewData["Title"] = "Manage Shops";
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Create New Shop
+    </a>
+</div>
+
+<!-- Desktop Table View -->
+<div class="d-none d-lg-block">
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.Address)</th>
+                    <th>Proprietor</th>
+                    <th>Stock Items</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td><strong>@Html.DisplayFor(modelItem => item.Name)</strong></td>
+                        <td>@Html.DisplayFor(modelItem => item.Address)</td>
+                        <td>@(item.Proprietor?.Email ?? "Not assigned")</td>
+                        <td>@item.ShopStock.Count items</td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a asp-action="Edit" asp-route-id="@item.ShopId" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.ShopId" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye me-1"></i>Details
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.ShopId" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i>Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mobile Card View -->
+<div class="d-lg-none">
+    <div class="row g-3">
+        @foreach (var item in Model)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="card-title mb-1">@Html.DisplayFor(modelItem => item.Name)</h6>
+                                <small class="text-muted">@Html.DisplayFor(modelItem => item.Address)</small>
+                            </div>
+                            <span class="badge bg-primary">@item.ShopStock.Count items</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted">Proprietor:</small>
+                            <div>@(item.Proprietor?.Email ?? "Not assigned")</div>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <a asp-action="Edit" asp-route-id="@item.ShopId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil me-2"></i>Edit Shop
+                            </a>
+                            <a asp-action="Details" asp-route-id="@item.ShopId" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye me-2"></i>View Details
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.ShopId" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash me-2"></i>Delete Shop
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

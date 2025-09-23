@@ -1,0 +1,214 @@
+@model EasyGames.Models.Shop // strongly typed to shop model
+
+@{
+    ViewData["Title"] = "My Shop Stock";
+    var userShops = ViewBag.UserShops as List<EasyGames.Models.Shop>; // all the users shops
+    var selectedShopId = ViewBag.SelectedShopId as int?; // the currently active shop (can be changed on this page)
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a asp-action="Transfer" asp-route-shopId="@Model.ShopId" class="btn btn-primary">
+        <i class="bi bi-arrow-right-circle me-2"></i>Transfer Stock
+    </a>
+</div>
+
+<!-- if the user has multiple shops - a toggle appears at the top to let the user switch between shops -->
+@if (userShops != null && userShops.Count > 1)
+{
+    <div class="mb-4">
+        <label class="form-label fw-bold">Select Shop:</label>
+        <div class="btn-group flex-wrap" role="group">
+            @foreach (var shop in userShops) // list of users shops
+            {
+                <a asp-action="Index" asp-route-shopId="@shop.ShopId"
+                   class="btn @(shop.ShopId == selectedShopId ? "btn-primary" : "btn-outline-primary")">
+                    @shop.Name
+                </a>
+            }
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@Model.Name</h5>
+        <small class="text-muted">@Model.Address</small>
+    </div>
+    <div class="card-body">
+        @if (Model.ShopStock.Any())
+        {
+            <!-- Desktop Table View -->
+            <div class="d-none d-lg-block">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Qty on Hand</th>
+                                <th>Buy Price</th>
+                                <th>Sell Price</th>
+                                <th>Stock Status</th>
+                                <th>Line Value</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stock in Model.ShopStock.OrderBy(s => s.StockItem!.Category).ThenBy(s => s.StockItem!.Name)) // sort by category then name
+                            {
+                                <tr class="@(stock.IsLowStock ? "table-warning" : "")">
+                                    <td>
+                                        <strong>@stock.StockItem?.Name</strong>
+                                        @if (stock.IsLowStock) // display alert if stock is low
+                                        {
+                                            <br><small class="text-warning">⚠️ Low Stock Alert</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@stock.StockItem?.Category</span> 
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">@stock.QtyOnHand</span>
+                                        <br><small class="text-muted">Threshold: @stock.LowStockThreshold</small>
+                                    </td>
+                                    <td>@stock.InheritedBuyPrice.ToString("C")</td>
+                                    <td>@stock.InheritedSellPrice.ToString("C")</td>
+                                    <td>
+                                        @if (stock.IsLowStock)
+                                        {
+                                            <span class="badge bg-warning">Low Stock</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">OK</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@stock.LineSellValue.ToString("C")</strong>
+                                        <br><small class="text-muted">Cost: @stock.LineBuyValue.ToString("C")</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a asp-action="EditPrices" asp-route-id="@stock.ShopStockId"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil me-1"></i>Edit
+                                            </a>
+                                            <form asp-action="Delete" asp-route-id="@stock.ShopStockId"
+                                                  method="post" class="d-inline"
+                                                  onsubmit="return confirm('Return all @stock.QtyOnHand units to main stock?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-arrow-return-left me-1"></i>Return
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-info">
+                                <th colspan="6">Total Shop Value:</th>
+                                <th>
+                                    <strong>@Model.ShopStock.Sum(s => s.LineSellValue).ToString("C")</strong>
+                                    <br><small class="text-muted">Cost: @Model.ShopStock.Sum(s => s.LineBuyValue).ToString("C")</small>
+                                </th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-lg-none">
+                <div class="row g-3">
+                    @foreach (var stock in Model.ShopStock.OrderBy(s => s.StockItem!.Category).ThenBy(s => s.StockItem!.Name))
+                    {
+                        <div class="col-12">
+                            <div class="card @(stock.IsLowStock ? "border-warning" : "")">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h6 class="card-title mb-1">@stock.StockItem?.Name</h6>
+                                            <span class="badge bg-secondary">@stock.StockItem?.Category</span>
+                                            @if (stock.IsLowStock)
+                                            {
+                                                <span class="badge bg-warning ms-1">Low Stock</span>
+                                            }
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold">@stock.LineSellValue.ToString("C")</div>
+                                            <small class="text-muted">Line Value</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="text-center p-2 bg-light rounded">
+                                                <div class="fw-bold fs-5">@stock.QtyOnHand</div>
+                                                <small class="text-muted">Qty on Hand</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-center p-2 bg-light rounded">
+                                                <div class="fw-bold">@stock.InheritedSellPrice.ToString("C")</div>
+                                                <small class="text-muted">Sell Price</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Buy Price:</small>
+                                            <div>@stock.InheritedBuyPrice.ToString("C")</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Threshold:</small>
+                                            <div>@stock.LowStockThreshold</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <a asp-action="EditPrices" asp-route-id="@stock.ShopStockId"
+                                           class="btn btn-sm btn-outline-primary flex-fill">
+                                            <i class="bi bi-pencil me-1"></i>Edit Price
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@stock.ShopStockId"
+                                              method="post" class="flex-fill"
+                                              onsubmit="return confirm('Return all @stock.QtyOnHand units to main stock?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                                <i class="bi bi-arrow-return-left me-1"></i>Return Stock
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Mobile Summary -->
+                <div class="card mt-4 bg-info bg-opacity-10">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Total Shop Value</h6>
+                        <div class="fs-4 fw-bold text-primary">@Model.ShopStock.Sum(s => s.LineSellValue).ToString("C")</div>
+                        <small class="text-muted">Cost: @Model.ShopStock.Sum(s => s.LineBuyValue).ToString("C")</small>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h6>No stock items yet</h6>
+                <p class="mb-0">
+                    This shop doesn't have any stock items yet.
+                    <a asp-action="Transfer" asp-route-shopId="@Model.ShopId" class="alert-link">Transfer some stock from the main inventory</a>.
+                </p>
+            </div>
+        }
+    </div>
+</div>

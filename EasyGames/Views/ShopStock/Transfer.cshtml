@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Transfer Stock";
+    var selectedShop = ViewBag.SelectedShop as EasyGames.Models.Shop; // shop chosen for stock transfer
+    var userShops = ViewBag.UserShops as List<EasyGames.Models.Shop>; // list of all shops owned by the user, allowing them to easily switch between shops
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Transfer Stock to Shop</h5>
+                <small class="text-muted">Transfer items from main inventory to: <strong>@selectedShop?.Name</strong></small>
+            </div>
+            <div class="card-body">
+                <form asp-action="Transfer" method="post">
+                    <input type="hidden" name="shopId" value="@selectedShop?.ShopId" /> <!-- sends shopId to controller -->
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Item</label>
+                        <select name="stockItemId" class="form-control" required>
+                            <option value="">-- Select Item to Transfer --</option>
+                            @foreach (var item in (ViewBag.StockItemId as SelectList)!) // all possible stock items, passed from controller
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Quantity to Transfer</label>
+                                <input type="number" name="quantity" class="form-control" min="1" max="999" value="1" required />
+                                <div class="form-text">Amount to transfer from main stock to shop</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Low Stock Threshold</label>
+                                <input type="number" name="lowStockThreshold" class="form-control" min="0" max="100" value="5" />
+                                <div class="form-text">Alert when quantity falls below this level</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Transfer Stock</button>
+                        <a asp-action="Index" asp-route-shopId="@selectedShop?.ShopId" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        @if (userShops != null && userShops.Count > 1) // only if the user has shops, display this! Backup, they shouldnt be able to access this page anyway!
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="card-title">Switch Shop</h6>
+                </div>
+                <div class="card-body">
+                    @foreach (var shop in userShops)
+                    {
+                        <div class="mb-2">
+                            <a asp-action="Transfer" asp-route-shopId="@shop.ShopId"
+                               class="btn btn-sm @(shop.ShopId == selectedShop?.ShopId ? "btn-primary" : "btn-outline-secondary") w-100">
+                                @shop.Name
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- friendly instructions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title">Transfer Notes</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li><strong>Permanent Transfer:</strong> Items are moved from main inventory to shop</li>
+                    <li><strong>Price Inheritance:</strong> Current buy/sell prices are copied to shop</li>
+                    <li><strong>Pricing Control:</strong> You can adjust sell prices later</li>
+                    <li><strong>Stock Alerts:</strong> Set thresholds to monitor low stock</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,9 +1,96 @@
-﻿@model EasyGames.Models.StockItem
+﻿@model EasyGames.Models.ViewModels.CatalogueDetailsViewModel
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.StockItem.Name;
 }
-<h1>Details</h1>
-@await Html.PartialAsync("_CardDetails", Model)
+
+<!-- contains product details section -->
+@await Html.PartialAsync("_CardDetails", Model.StockItem) 
+
+<!-- shop stock availability section -->
+<div class="shop-availability-section mt-5">
+    @if (Model.ShopStock.Any())
+    {
+        <div class="section-header mb-4">
+            <h3 class="section-title">
+                <i class="bi bi-shop me-2 text-primary"></i>Available in Stores
+            </h3>
+            <p class="section-subtitle text-muted">Find this item at these physical locations for in-store pickup</p>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var shopStock in Model.ShopStock) // list of stock items in the shop
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="shop-stock-card @(shopStock.IsLowStock ? "low-stock" : "in-stock")">
+                        <div class="shop-info">
+                            <h5 class="shop-name">@shopStock.ShopName</h5>
+                            <p class="shop-address">
+                                <i class="bi bi-geo-alt me-1"></i>@shopStock.ShopAddress
+                            </p>
+                        </div>
+                        <div class="stock-info">
+                            <div class="stock-quantity">
+                                <span class="quantity-number">@shopStock.QtyOnHand</span>
+                                <span class="quantity-label">in stock</span>
+                            </div>
+                            <div class="stock-status">
+                                @if (shopStock.IsLowStock)
+                                {
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Low Stock
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Available
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="shop-notice mt-4">
+            <div class="alert alert-info border-0">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-info-circle me-3 mt-1 text-info"></i>
+                    <div>
+                        <h6 class="alert-heading mb-2">Store Pickup Information</h6>
+                        <p class="mb-0">
+                            Stock shown is available for in-store pickup only. Online orders are fulfilled
+                            from our main warehouse separately from store inventory.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="section-header mb-3">
+            <h3 class="section-title">
+                <i class="bi bi-box-seam me-2 text-secondary"></i>Availability
+            </h3>
+        </div>
+        <div class="online-only-notice">
+            <div class="alert alert-light border">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-truck me-3 fs-4 text-secondary"></i>
+                    <div>
+                        <h6 class="mb-1">Online Delivery Only</h6>
+                        <p class="mb-0 text-muted">
+                            This item is available for online purchase and will be shipped from our main warehouse.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
 @*
     Refrences:
     https://learn.microsoft.com/en-us/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-9.0
@@ -25,7 +112,7 @@
     {
         <!--If role is admin, you can edit from catalogue ?.id is like a dymanic variable in Django.-->
         @*{% url %} is used in django to bind urls to links to avoid hard coding. C# uses tag helpers asp-route-* = {% url %}*@
-        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
+        <a asp-action="Edit" asp-route-id="@Model.StockItem.Id" class="btn btn-primary">Edit</a>
     }
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
