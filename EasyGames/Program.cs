@@ -1,5 +1,6 @@
 using EasyGames.Data;
 using EasyGames.Models;
+using EasyGames.Options;
 using EasyGames.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -45,6 +46,21 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+
+// bind TierRules from appsettings
+builder.Services.Configure<TierRulesOptions>(
+    builder.Configuration.GetSection("TierRules"));
+
+// add TierService
+builder.Services.AddScoped<ITierService, TierService>();
+
+// ... existing services (DbContext, Identity, MVC, etc.)
+
+builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+
+builder.Services.AddScoped<ISalesService, SalesService>();
+
 
 //  Requria a confirmed account, based
 builder.Services

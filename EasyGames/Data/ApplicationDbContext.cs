@@ -23,6 +23,10 @@ namespace EasyGames.Data
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Shop> Shops => Set<Shop>();
         public DbSet<ShopStock> ShopStock => Set<ShopStock>();
+
+        //   // TIERING
+        public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
+
         protected override void OnModelCreating(ModelBuilder b)
         {
             base.OnModelCreating(b);
@@ -31,14 +35,26 @@ namespace EasyGames.Data
             {
                 e.Property(o => o.Subtotal).HasPrecision(18, 2);
                 e.Property(o => o.GrandTotal).HasPrecision(18, 2);
+
+                // ADDED: profit/cost totals need precision too
+                e.Property(o => o.TotalCost).HasPrecision(18, 2);
+                e.Property(o => o.TotalProfit).HasPrecision(18, 2);
             });
 
             b.Entity<OrderItem>().Property(p => p.UnitPriceAtPurchase).HasPrecision(18, 2);
+            // ADDED: buy-cost snapshot on the line item
+            b.Entity<OrderItem>().Property(p => p.UnitBuyPriceAtPurchase).HasPrecision(18, 2);
+
             b.Entity<StockItem>(e =>
             {
                 e.Property(p => p.BuyPrice).HasPrecision(18, 2);
                 e.Property(p => p.SellPrice).HasPrecision(18, 2);
             });
+
+            // ADDED: lifetime contribution precision for tiering math
+            b.Entity<CustomerProfile>()
+             .Property(p => p.LifetimeProfitContribution)
+             .HasPrecision(18, 2);
 
             // we need to explicitly configure Shop and ShopStock
             // while the other entities can have most of their schema details inferred, these have a lot more custom logic
@@ -68,6 +84,13 @@ namespace EasyGames.Data
 
                 e.HasIndex(ss => new { ss.ShopId, ss.StockItemId }).IsUnique(); // prevent duplicate stock items per shop
             });
+
+            // Order → OrderItems
+            b.Entity<Order>()
+             .HasMany(o => o.Items)
+             .WithOne(oi => oi.Order)
+             .HasForeignKey(oi => oi.OrderId)
+             .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

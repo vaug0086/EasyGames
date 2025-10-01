@@ -9,7 +9,6 @@
 @* layout injects identity and cart services shows nav links based on login and role displays cart count badge and
 renders tempdata alerts for user feedback *@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +30,7 @@ renders tempdata alerts for user feedback *@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <!-- Left nav -->
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
@@ -61,18 +61,26 @@ renders tempdata alerts for user feedback *@
                                     <i class="bi bi-gear"></i> Admin
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="StockItems" asp-action="Index">
-                                        <i class="bi bi-box"></i> Stock Items
-                                    </a></li>
-                                    <li><a class="dropdown-item" asp-controller="Shops" asp-action="Index">
-                                        <i class="bi bi-shop"></i> Manage Shops
-                                    </a></li>
-                                    <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">
-                                        <i class="bi bi-people"></i> Users
-                                    </a></li>
-                                    <li><a class="dropdown-item" asp-controller="OrdersAdmin" asp-action="Index">
-                                        <i class="bi bi-clipboard-check"></i> All Orders
-                                    </a></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="StockItems" asp-action="Index">
+                                            <i class="bi bi-box"></i> Stock Items
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Shops" asp-action="Index">
+                                            <i class="bi bi-shop"></i> Manage Shops
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Users" asp-action="Index">
+                                            <i class="bi bi-people"></i> Users
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="OrdersAdmin" asp-action="Index">
+                                            <i class="bi bi-clipboard-check"></i> All Orders
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         }
@@ -99,11 +107,26 @@ renders tempdata alerts for user feedback *@
                             </a>
                         </li>
                     </ul>
+
+                    <!-- Right nav -->
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item">
+                            
+                                <a class="nav-link" asp-controller="Account" asp-action="Index">My Account</a>
+                                @* Alternative (if you added [Route("Customer/[controller]")] on AccountController):
+                               <a class="nav-link" asp-controller="Account" asp-action="Index">My Account</a> *@
+                            </li>
+                        }
+                    </ul>
+
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @if (TempData["AlertSuccess"] is string s)

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EasyGames.Models
 {
@@ -33,6 +34,20 @@ namespace EasyGames.Models
 
         public decimal Subtotal { get; set; }
         public decimal GrandTotal { get; set; }
+
+       // // NEW: store where this order happened
+        [StringLength(10)]
+        public string Channel { get; set; } = "Web"; // "Web" or "Shop"
+
+        public int? ShopId { get; set; } // null for web orders
+
+      //  // NEW: accounting totals
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalCost { get; set; }     // sum of OrderItem.LineCost
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalProfit { get; set; }   // GrandTotal - TotalCost
+
 
         [Required, StringLength(20)]
         [RegularExpression("^(Pending|Fulfilled|Cancelled)$")]

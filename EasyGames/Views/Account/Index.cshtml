@@ -1,0 +1,54 @@
+﻿@model EasyGames.ViewModels.MyAccountViewModel
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<h2 class="mb-3">My Account</h2>
+
+<div class="card mb-4 p-3">
+    <div><strong>Current Tier:</strong> @Model.CurrentTier</div>
+    <div><strong>Lifetime Contribution:</strong> $@Model.LifetimeProfit</div>
+
+    @if (Model.CurrentTier.ToString() != "Platinum")
+    {
+        <div class="mt-3">
+            <div>Progress to next tier (target: $@Model.NextTierTarget):</div>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar" role="progressbar"
+                     style="width:@(Model.PercentToNext * 100)%"
+                     aria-valuenow="@(Model.PercentToNext * 100)" aria-valuemin="0" aria-valuemax="100">
+                    @Math.Round(Model.PercentToNext * 100, 0)%
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mt-3 alert alert-success">You’ve reached the highest tier 🎉</div>
+    }
+</div>
+
+<h4>My Purchases</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Channel</th>
+            <th>Total</th>
+            <th>Cost</th>
+            <th>Profit (internal)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model.Sales)
+        {
+            <tr>
+                <td>@s.Date.ToLocalTime()</td>
+                <td>@s.Channel</td>
+                <td>$@s.TotalSell</td>
+                <td>$@s.TotalCost</td>
+                <td>$@s.TotalProfit</td>
+            </tr>
+        }
+    </tbody>
+</table>

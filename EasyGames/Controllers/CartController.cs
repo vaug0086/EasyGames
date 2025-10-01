@@ -13,8 +13,9 @@ public class CartController : Controller
 {
     private readonly ICartService _cart;
     private readonly ApplicationDbContext _db;
+    private readonly ISalesService _sales;
 
-    public CartController(ICartService cart, ApplicationDbContext db)
+    public CartController(ICartService cart, ApplicationDbContext db, ISalesService sales)
     { _cart = cart; _db = db; }
 
     [HttpPost]
@@ -89,6 +90,8 @@ public class CartController : Controller
 
         if (!ModelState.IsValid)
             return View(vm with { Items = items, Subtotal = items.Sum(i => i.LineTotal) });
+
+
 
         var order = new Order
         {
