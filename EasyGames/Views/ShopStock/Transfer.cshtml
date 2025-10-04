@@ -1,3 +1,7 @@
+<!-- This file was produced mainly by Claude Code, with some edits from Frank -->
+<!-- "Write me a Razor view for the transferring of stock from the main stock to the prop's shop. I've provided the currently selected shop and the list of all shops the prop can transfer too (i.e., their shops)." -->
+<!-- File was edited over discussions with Claude. Comments at tricky spots show Frank understanding. --> 
+
 @{
     ViewData["Title"] = "Transfer Stock";
     var selectedShop = ViewBag.SelectedShop as EasyGames.Models.Shop; // shop chosen for stock transfer

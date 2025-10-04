@@ -146,6 +146,8 @@ namespace EasyGames.Controllers
         }
 
         //  ROLE TOGGLE FOR PROPRIETOR
+        // NOTE FROM FRANK - Implemeted with the help of Claude Code.
+        // Many prompts - and not copy paste
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleProprietor(string id)
@@ -167,6 +169,8 @@ namespace EasyGames.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        
+        // END REFERENCE TO CLAUDE
 
         //  DELETE
 

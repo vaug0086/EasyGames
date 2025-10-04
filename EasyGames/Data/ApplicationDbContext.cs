@@ -59,6 +59,7 @@ namespace EasyGames.Data
             // we need to explicitly configure Shop and ShopStock
             // while the other entities can have most of their schema details inferred, these have a lot more custom logic
             // we need to make sure data integrity is protected!
+            // NOTE FROM FRANK - this code was generated with the support of Claude Code! No reference or prompt because we worked through it together (i.e., its not copy and paste)
             b.Entity<Shop>(e =>
             {
                 e.HasOne(s => s.Proprietor)

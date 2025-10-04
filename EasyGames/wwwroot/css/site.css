@@ -30,6 +30,11 @@ body {
   text-align: start;
 }
 
+/* The following code was written by Claude Code + ChatGPT */
+/* Produced over multiple prompts */
+/* Don't have the exact prompts but was when building the home page and improving product pages + cards */
+/* i.e., "improve the product cards by including consistently sized images (with padding, not cropped). Keep the styling in the separate css file" */
+
 /* Product card image styling for consistent heights */
 .card-img-top {
   height: 250px;
@@ -279,3 +284,5 @@ body {
     font-size: 1.5rem;
   }
 }
+
+/* End AI-generated code */ 

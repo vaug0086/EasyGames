@@ -38,7 +38,7 @@ renders tempdata alerts for user feedback *@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Catalogue" asp-action="Index">Shop</a>
                         </li>
-
+                        <!-- Note from FRANK - Claude Code helped me add these new links. We discussed it. Not copy and pasted so no prompt available. -->
                         @if (User.IsInRole("Proprietor"))
                         {
                             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -53,7 +53,7 @@ renders tempdata alerts for user feedback *@
                                 </li>
                             }
                         }
-
+                        <!-- Moved to drop down list using Claude Code. "Can you group all the admin links under a dropdown menu to clean up the navbar? "-->
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item dropdown">
@@ -84,6 +84,7 @@ renders tempdata alerts for user feedback *@
                                 </ul>
                             </li>
                         }
+                        <!-- End claude code reference -->
 
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {

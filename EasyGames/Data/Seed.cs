@@ -31,6 +31,8 @@ namespace EasyGames.Data
         {
             if (dbinstance.StockItems.Any()) return;
 
+            // this was added from Frank's original project.
+            // made up by ChatGPT, images manually downloaded from online
             dbinstance.StockItems.AddRange(
                 // Books
                 new StockItem { Name = "1984", Category = StockCategory.Book, BuyPrice = 10.99m, SellPrice = 14.99m, Quantity = 15, ImageUrl = "/images/seeds/book-1984.jpg" },
@@ -83,6 +85,9 @@ namespace EasyGames.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+            // NOTE FROM FRANK - code written with the help of Claude.
+            // Edited over many prompts but the main prompt for scaffolding was:
+            // "I want to create 3 clear test users - admin, proprietor, user - in the seed file. Then, I want to transfer some stock across to the stores randomly and have stock in the main stock holder. Should be like a real company after the seed file. "
             const string adminRole = "Admin";
             const string proprietorRole = "Proprietor";
             const string adminEmail = "admin@easygames.com";

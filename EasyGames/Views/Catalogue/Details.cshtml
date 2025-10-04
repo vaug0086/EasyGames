@@ -6,7 +6,11 @@
 <!-- contains product details section -->
 @await Html.PartialAsync("_CardDetails", Model.StockItem) 
 
-<!-- shop stock availability section -->
+<!-- shop stock availability section 
+HTML produced by Claude Code:
+"Using the CatalogueDetailsViewModel, write HTML that shows the stock that is available in-store.
+Don't make it overly complex with AJAX or anything. Just display the info provided in the model in an aesthetic way."
+-->
 <div class="shop-availability-section mt-5">
     @if (Model.ShopStock.Any())
     {
@@ -90,6 +94,7 @@
         </div>
     }
 </div>
+<!-- End CLAUDE CODE reference -->
 
 @*
     Refrences:
