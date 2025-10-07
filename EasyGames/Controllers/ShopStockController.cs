@@ -88,7 +88,8 @@ namespace EasyGames.Controllers
                 .OrderBy(si => si.Category)
                 .ThenBy(si => si.Name)
                 .ToListAsync();
-
+            
+            // used ViewBag in my last assignemnt - but here's the reference again: https://learn.microsoft.com/en-us/aspnet/core/mvc/views/overview?view=aspnetcore-9.0#pass-data-to-views
             ViewBag.SelectedShop = selectedShop; // again, these two values make it possible for the user to add stock to a different store all on the one page
             ViewBag.UserShops = userShops;
             ViewBag.StockItemId = new SelectList(availableItems, "Id", "Name");
