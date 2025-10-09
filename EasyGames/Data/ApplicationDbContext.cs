@@ -84,6 +84,9 @@ namespace EasyGames.Data
                  .OnDelete(DeleteBehavior.Restrict); // prevent deleting stock items that are in shops
 
                 e.HasIndex(ss => new { ss.ShopId, ss.StockItemId }).IsUnique(); // prevent duplicate stock items per shop
+
+                e.ToTable(tb => tb.HasCheckConstraint(
+                    "CK_ShopStock_QtyOnHand_NonNegative", "[QtyOnHand] >= 0"));// Prevents negative values for QtyonHand
             });
 
             // Order → OrderItems

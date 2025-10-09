@@ -13,9 +13,11 @@ namespace EasyGames.Models
         [Required]
         public int StockItemId { get; set; }
 
+        private int _qtyOnHand;
+
         [Range(0, 100000)]
         [Display(Name = "Quantity on Hand")]
-        public int QtyOnHand { get; set; }
+        public int QtyOnHand { get => _qtyOnHand; set => _qtyOnHand = Math.Max(0, value);}
 
         [Range(0, 100000)]
         [Display(Name = "Low Stock Threshold")]

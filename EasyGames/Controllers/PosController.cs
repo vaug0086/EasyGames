@@ -337,15 +337,25 @@ namespace EasyGames.Controllers
                     UnitBuyPriceAtPurchase = buy
                 });
 
-                // Decrement shop stock — allow going below zero (per brief),
+                // Decrement shop stock — allow purchasing past zero in system,
                 // we just record it and warn.
                 if (ss != null)
                 {
                     var before = ss.QtyOnHand;
-                    ss.QtyOnHand = before - line.Quantity;
-                    if (before < line.Quantity)
+                    var newQty = before - line.Quantity;
+
+                    if (newQty < 0)
                     {
-                        TempData["AlertWarning"] = "Some items were sold while system stock showed low/zero.";
+                        // Clamp to zero, but allow the sale
+                        var oversold = -newQty; // how many beyond system stock
+                        ss.QtyOnHand = 0;
+
+                        // Warning
+                        TempData["AlertWarning"] = $"Sold {oversold} more of '{ss.StockItem?.Name}' than stock on hand.";
+                    }
+                    else
+                    {
+                        ss.QtyOnHand = newQty;
                     }
                 }
             }
