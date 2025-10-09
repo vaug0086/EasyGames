@@ -133,9 +133,63 @@
             </form>
 
             <div class="card p-3">
-                <label>Customer mobile:</label>
-                <input disabled class="form-control" placeholder="..." />
-                <button disabled class="mt-2 btn btn-success w-100">Checkout</button>
+                @if (Model.CustomerName is null)
+                {
+                    <form method="post" asp-action="AttachCustomer" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                        <input type="hidden" name="returnCategory" value="@(Model.SelectedCategory?.ToString())" />
+                        <label for="mobile">Customer mobile:</label>
+                        <input id="mobile" name="mobile" class="form-control" autocomplete="tel" placeholder="e.g. 0412 345 678" />
+                        <button class="mt-2 btn btn-outline-primary w-100">Attach Customer</button>
+                        <div class="form-text">Attach to give loyalty tier discounts.</div>
+                        <div class="form-text">This will be recorded as a guest sale.</div>
+                    </form>
+                }
+                else
+                {
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div><strong>@Model.CustomerName</strong></div>
+                                <div class="pos-basket-muted">@Model.CustomerPhone</div>
+                            </div>
+                            <form method="post" asp-action="DetachCustomer" class="m-0">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                                <input type="hidden" name="returnCategory" value="@(Model.SelectedCategory?.ToString())" />
+                                <button class="btn btn-sm btn-outline-secondary">Detach</button>
+                            </form>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal</span>
+                            <span>@Model.Subtotal.ToString("C")</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Tier Discount</span>
+                            <span>@((Model.DiscountAmount ?? 0m).ToString("C"))</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total (preview)</span>
+                            <span>@( (Model.Subtotal - (Model.DiscountAmount ?? 0m)).ToString("C") )</span>
+                        </div>
+
+
+                    </div>
+                }
+                @if (Model.Basket.Count > 0)
+                {
+                    <form method="post" asp-action="Checkout" class="mt-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                        <input type="hidden" name="returnCategory" value="@(Model.SelectedCategory?.ToString())" />
+                        <button class="btn btn-success w-100">Checkout</button>
+                        
+                    </form>
+                }
             </div>
         }
     </aside>

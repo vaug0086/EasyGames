@@ -6,6 +6,7 @@ using EasyGames.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace EasyGames.Controllers
 {
@@ -14,13 +15,26 @@ namespace EasyGames.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly IPosCartService _posCart;
+        private readonly IPosStateService _posState;
+        private readonly ICustomerProfileService _profiles;
+        private readonly ITierService _tiers;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PosController(ApplicationDbContext db, IPosCartService posCart)
+        public PosController(ApplicationDbContext db,
+                             IPosCartService posCart,
+                             IPosStateService posState,
+                             ICustomerProfileService profiles,
+                             ITierService tiers,
+                             UserManager<ApplicationUser> userManager)
         {
             _db = db;
             _posCart = posCart;
+            _posState = posState;
+            _profiles = profiles;
+            _tiers = tiers;
+            _userManager = userManager;
         }
-
+        //Gets the users access to shops for POS system(allows users to work at multiple shops)
         private async Task<List<Shop>> GetUserShopsAsync(string userId)
             => await _db.Shops
                 .AsNoTracking()
@@ -28,6 +42,7 @@ namespace EasyGames.Controllers
                 .OrderBy(s => s.Name)
                 .ToListAsync();
 
+        //resolves shop to defualt
         private async Task<Shop?> ResolveShopAsync(int? shopId, string userId, List<Shop> userShops)
         {
             if (shopId.HasValue)
@@ -35,7 +50,22 @@ namespace EasyGames.Controllers
 
             return userShops.FirstOrDefault(); // default to first shop
         }
+        //Defualt Guestuseraccount for POS orders without an attached user to the order
+        private const string GuestEmail = "guest@easygames.com";
+        private async Task<string> GetCheckoutUserIdAsync(int shopId)
+        {
+            // If a customer is attached, use them
+            var attachedId = _posState.GetCustomerId(shopId);
+            if (!string.IsNullOrEmpty(attachedId)) return attachedId;
 
+            // Else use the pre-seeded Guest user
+            var guest = await _userManager.FindByEmailAsync(GuestEmail);
+            if (guest == null)
+                throw new InvalidOperationException(
+                    $"Guest user '{GuestEmail}' not found. something is likely broken in the DB. Reseed or update guest email");
+
+            return guest.Id;
+        }
 
 
         [HttpGet]
@@ -66,8 +96,32 @@ namespace EasyGames.Controllers
                 Stock = stock,
                 Basket = basket,
                 Subtotal = _posCart.Subtotal(shop.ShopId)
+
             };
 
+            //attach customer discount if entitled 
+            var attachedId = _posState.GetCustomerId(shop.ShopId);
+            if (!string.IsNullOrEmpty(attachedId))
+            {
+                var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == attachedId);
+                if (user != null)
+                {
+                    var profile = await _profiles.GetOrCreateAsync(user.Id);
+
+                    // discount mappings
+                    decimal discountPct = profile.CurrentTier switch
+                    {
+                        Tier.Silver => 0.05m,
+                        Tier.Gold => 0.10m,
+                        Tier.Platinum => 0.15m,
+                        _ => 0.00m
+                    };
+
+                    vm.CustomerPhone = _posState.GetCustomerPhone(shop.ShopId);
+                    vm.CustomerName = string.IsNullOrWhiteSpace(user.FullName) ? user.Email : user.FullName;
+                    vm.DiscountAmount = decimal.Round(vm.Subtotal * discountPct, 2, MidpointRounding.AwayFromZero);
+                }
+            }
             if (category is null)
             {
                 // View for Categories
@@ -166,6 +220,153 @@ namespace EasyGames.Controllers
 
             _posCart.Clear(shopId);
             return RedirectToAction(nameof(Index), new { shopId });
+        }
+        //Used to attach a customer to the current order via Phonenumbe. 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AttachCustomer(int shopId, string mobile, string? returnCategory)
+        {
+            var uid = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!;
+            if (!await UserOwnsShopAsync(shopId, uid)) return Forbid();
+
+            var input = (mobile ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                TempData["AlertDanger"] = "Enter a mobile number.";
+                return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });
+            }
+
+            // Exact match against Db numbers
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.PhoneNumber == input);
+
+            if (user is null)
+            {
+                TempData["AlertInfo"] = "No account with that mobile. You can still sell as guest or sign them up.";
+                _posState.ClearCustomer(shopId);
+                return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });
+            }
+
+            _posState.SetCustomer(shopId, user.Id, user.PhoneNumber ?? input);
+            TempData["AlertSuccess"] = $"Customer attached: {(string.IsNullOrWhiteSpace(user.FullName) ? user.Email : user.FullName)}";
+            return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });
+        }
+        //Used to remove a customer from the current POS order
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DetachCustomer(int shopId, string? returnCategory)
+        {
+            var uid = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!;
+            if (!await UserOwnsShopAsync(shopId, uid)) return Forbid();
+
+            _posState.ClearCustomer(shopId);
+            TempData["AlertInfo"] = "Customer detached.";
+            return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });
+        }
+
+        //Used to Checkout for POS System
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Checkout(int shopId, string? returnCategory)
+        {
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            if (!await UserOwnsShopAsync(shopId, uid)) return Forbid();
+            //Check for empty basket
+            var basket = _posCart.GetItems(shopId).ToList();
+            if (basket.Count == 0)
+            {
+                TempData["AlertDanger"] = "Basket is empty.";
+                return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });
+            }
+
+            //Prefer ShopStock prices, fallback to StockItem if missing
+            var stockItemIds = basket.Select(b => b.StockItemId).ToList();
+            var shopStocks = await _db.ShopStock
+                .Include(ss => ss.StockItem)
+                .Where(ss => ss.ShopId == shopId && stockItemIds.Contains(ss.StockItemId))
+                .ToListAsync();
+            var stockItems = await _db.StockItems
+                .Where(si => stockItemIds.Contains(si.Id))
+                .ToListAsync();
+
+            // Subtotal at current sell price
+            decimal subtotal = 0m;
+            decimal totalCost = 0m;
+
+            // Discount if attached customer has one
+            decimal discountPct = 0m;
+            var attachedId = _posState.GetCustomerId(shopId);
+            if (!string.IsNullOrEmpty(attachedId))
+            {
+                var profile = await _profiles.GetOrCreateAsync(attachedId);
+                discountPct = profile.CurrentTier switch
+                {
+                    Tier.Silver => 0.05m,
+                    Tier.Gold => 0.10m,
+                    Tier.Platinum => 0.15m,
+                    _ => 0m
+                };
+            }
+
+            var order = new Order
+            {
+                UserId = await GetCheckoutUserIdAsync(shopId),
+                CreatedUtc = DateTime.UtcNow,
+                ShippingName = "POS Sale",
+                ShippingAddress = "",
+                Channel = "Shop",
+                ShopId = shopId,
+                Status = OrderStatuses.Fulfilled // POS sale is completed at counter
+            };
+
+            foreach (var line in basket)
+            {
+                var ss = shopStocks.FirstOrDefault(x => x.StockItemId == line.StockItemId);
+                var si = stockItems.FirstOrDefault(x => x.Id == line.StockItemId);
+
+                var sell = ss?.InheritedSellPrice ?? si?.SellPrice ?? line.UnitPrice;
+                var buy = ss?.InheritedBuyPrice ?? si?.BuyPrice ?? 0m;
+
+                subtotal += sell * line.Quantity;
+                totalCost += buy * line.Quantity;
+
+                order.Items.Add(new OrderItem
+                {
+                    StockItemId = line.StockItemId,
+                    Quantity = line.Quantity,
+                    UnitPriceAtPurchase = sell,
+                    UnitBuyPriceAtPurchase = buy
+                });
+
+                // Decrement shop stock — allow going below zero (per brief),
+                // we just record it and warn.
+                if (ss != null)
+                {
+                    var before = ss.QtyOnHand;
+                    ss.QtyOnHand = before - line.Quantity;
+                    if (before < line.Quantity)
+                    {
+                        TempData["AlertWarning"] = "Some items were sold while system stock showed low/zero.";
+                    }
+                }
+            }
+
+            var discount = decimal.Round(subtotal * discountPct, 2, MidpointRounding.AwayFromZero);
+            var grand = subtotal - discount;
+
+            order.Subtotal = decimal.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+            order.GrandTotal = decimal.Round(grand, 2, MidpointRounding.AwayFromZero);
+            order.TotalCost = decimal.Round(totalCost, 2, MidpointRounding.AwayFromZero);
+            order.TotalProfit = order.GrandTotal - order.TotalCost;
+
+            _db.Orders.Add(order);
+            await _db.SaveChangesAsync();
+
+            _posCart.Clear(shopId);
+            // keep attached customer for next sale, or clear if you prefer:
+            // _posState.ClearCustomer(shopId);
+
+            TempData["AlertSuccess"] = $"POS sale complete. Order #{order.Id} total {order.GrandTotal:C}.";
+            return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });
         }
     }
 }
