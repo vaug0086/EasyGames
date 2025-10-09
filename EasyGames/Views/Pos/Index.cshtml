@@ -27,7 +27,22 @@
             <div class="pos-grid">
                 @foreach (var cat in Model.Categories.OrderBy(c => c.Category.ToString()))
                 {
+                    var emoji = cat.Category.ToString() switch
+                    {
+                        "Book" => "📚",
+                        "Toy" => "🧸",
+                        "Game" => "🎮",
+                        _ => "📦"
+                    };
+                    var colorClass = cat.Category.ToString() switch
+                    {
+                        "Book" => "text-primary",
+                        "Toy" => "text-success",
+                        "Game" => "text-danger",
+                        _ => "text-secondary"
+                    };
                     <a class="pos-tile" href="@Url.Action("Index", new { shopId = Model.SelectedShop.ShopId, category = cat.Category })">
+                        <div class="pos-tile-emoji @colorClass">@emoji</div>
                         <div class="pos-tile-content">
                             <div class="pos-tile-title">@cat.Category</div>
                             <div class="pos-muted">@cat.ItemCount item@(cat.ItemCount == 1 ? "" : "s")</div>

@@ -366,7 +366,7 @@ body {
     grid-template-columns: repeat(5, 1fr);
 }
 
-/* Make each tile a fixed aspect-ratio “card” */
+/* Make each tile a fixed aspect-ratio ï¿½cardï¿½ */
 .pos-tile {
     position: relative;
     display: block;
@@ -400,6 +400,23 @@ body {
     object-position: center;
     opacity: .22; /* bump this up/down to taste */
     filter: saturate(.95);
+}
+
+/* Emoji fills the tile background for categories */
+/* Written by Claude Code */
+.pos-tile-emoji {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8rem;
+    opacity: .2;
+    user-select: none;
+    pointer-events: none;
 }
 
 /* Optional: subtle gradient so text is readable regardless of image */
