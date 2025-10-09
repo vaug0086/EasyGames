@@ -22,14 +22,14 @@ renders tempdata alerts for user feedback *@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">EasyGames</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <!-- Left nav -->
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
@@ -46,10 +46,22 @@ renders tempdata alerts for user feedback *@
 
                             if (hasShops)
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link fw-bold text-primary" asp-controller="ShopStock" asp-action="Index">
-                                        <i class="bi bi-shop"></i> My Shop
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-shop"></i> Proprietor
                                     </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="ShopStock" asp-action="Index">
+                                                <i class="bi bi-box-seam"></i> My Shop
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Pos" asp-action="Index">
+                                                <i class="bi bi-cash-register"></i> POS
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                             }
                         }
@@ -114,10 +126,9 @@ renders tempdata alerts for user feedback *@
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             <li class="nav-item">
-                            
-                                <a class="nav-link" asp-controller="Account" asp-action="Index">My Account</a>
-                                @* Alternative (if you added [Route("Customer/[controller]")] on AccountController):
-                               <a class="nav-link" asp-controller="Account" asp-action="Index">My Account</a> *@
+                                <a class="nav-link" asp-controller="Account" asp-action="Index">
+                                    <i class="bi bi-person-circle"></i> My Account
+                                </a>
                             </li>
                         }
                     </ul>
