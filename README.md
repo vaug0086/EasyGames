@@ -1,7 +1,7 @@
 # 🎮 EasyGames
 
 A modern e-commerce platform for books, toys, and games built with ASP.NET Core 9.0.
-Test Push
+
 ## ✨ Features
 
 - 🛒 **Shopping Cart** - Session-based cart with anonymous user support
@@ -14,6 +14,11 @@ Test Push
 - 🔒 **Secure Authentication** - ASP.NET Core Identity integration
 - 📱 **Responsive Design** - Mobile-friendly Bootstrap 5 interface
 
+## 🧩 Requirements
+- An operating system that supports Visual Studio 2022 Community (Latest)
+- .NET SDK
+- Git
+
 ## 🚀 Quick Start
 
 1. **Clone the repository**
@@ -22,12 +27,18 @@ Test Push
    cd EasyGames
    ```
 
-2. **Run with database seeding**
+2. **Apply migrations**
+   Go to Tools → NuGet Package Manager → Package Manager Console
+   Run:
    ```bash
-   dotnet run --project EasyGames/EasyGames.csproj -- --seed
+   Drop-Database
+   Update-Database
    ```
+3. **Seed the database**
+   The project includes a Seed.cs file that populates initial roles, items, and users for testing.
+   The seed process is automatically called from Program.cs.
 
-3. **Access the application**
+5. **Access the application**
    - Open your browser to `https://localhost:5001`
    - Login with one of the pre-configured accounts (see below)
 
