@@ -47,8 +47,24 @@ else
                 @foreach (var i in Model.Items)
                 {
                     <tr>
-                        <td>@i.StockItem?.Name</td>
-                        <td class="text-end">@i.Quantity</td>
+                        <td>
+                            @i.StockItem?.Name
+                            @if (i.IsBackordered)
+                            {
+                                <br />
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-clock-history"></i> @i.QuantityBackordered of @i.Quantity on backorder
+                                </span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @i.Quantity
+                            @if (i.IsBackordered)
+                            {
+                                <br />
+                                <small class="text-muted">(@i.QuantityFulfilled fulfilled)</small>
+                            }
+                        </td>
                         <td class="text-end">@i.UnitPriceAtPurchase.ToString("C")</td>
                         <td class="text-end">@((i.UnitPriceAtPurchase * i.Quantity).ToString("C"))</td>
                     </tr>

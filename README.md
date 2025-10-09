@@ -7,6 +7,9 @@ Test Push
 - 🛒 **Shopping Cart** - Session-based cart with anonymous user support
 - 📦 **Inventory Management** - Complete stock tracking system
 - 🏪 **Multi-Shop Support** - Physical store locations with separate inventory
+- 🕐 **Backorder System** - POS can sell beyond available stock with automatic backorder tracking
+  - Orders with backordered items are marked as "Pending"
+  - Orders fully fulfilled from stock are marked as "Fulfilled"
 - 👥 **Role-Based Access** - Admin, Proprietor, and Customer roles
 - 🔒 **Secure Authentication** - ASP.NET Core Identity integration
 - 📱 **Responsive Design** - Mobile-friendly Bootstrap 5 interface

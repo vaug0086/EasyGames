@@ -315,7 +315,7 @@ namespace EasyGames.Controllers
                 ShippingAddress = "",
                 Channel = "Shop",
                 ShopId = shopId,
-                Status = OrderStatuses.Fulfilled // POS sale is completed at counter
+                Status = OrderStatuses.Pending // Will be set to Fulfilled if no backorders
             };
 
             foreach (var line in basket)
@@ -329,16 +329,8 @@ namespace EasyGames.Controllers
                 subtotal += sell * line.Quantity;
                 totalCost += buy * line.Quantity;
 
-                order.Items.Add(new OrderItem
-                {
-                    StockItemId = line.StockItemId,
-                    Quantity = line.Quantity,
-                    UnitPriceAtPurchase = sell,
-                    UnitBuyPriceAtPurchase = buy
-                });
-
-                // Decrement shop stock — allow purchasing past zero in system,
-                // we just record it and warn.
+                // Calculate backorder quantity
+                int backordered = 0;
                 if (ss != null)
                 {
                     var before = ss.QtyOnHand;
@@ -346,18 +338,27 @@ namespace EasyGames.Controllers
 
                     if (newQty < 0)
                     {
-                        // Clamp to zero, but allow the sale
-                        var oversold = -newQty; // how many beyond system stock
+                        // Calculate how many units are backordered
+                        backordered = -newQty;
                         ss.QtyOnHand = 0;
 
-                        // Warning
-                        TempData["AlertWarning"] = $"Sold {oversold} more of '{ss.StockItem?.Name}' than stock on hand.";
+                        // Warning with backorder notification
+                        TempData["AlertWarning"] = $"{backordered} unit(s) of '{ss.StockItem?.Name}' placed on backorder.";
                     }
                     else
                     {
                         ss.QtyOnHand = newQty;
                     }
                 }
+
+                order.Items.Add(new OrderItem
+                {
+                    StockItemId = line.StockItemId,
+                    Quantity = line.Quantity,
+                    UnitPriceAtPurchase = sell,
+                    UnitBuyPriceAtPurchase = buy,
+                    QuantityBackordered = backordered // 0, unless overordered
+                });
             }
 
             var discount = decimal.Round(subtotal * discountPct, 2, MidpointRounding.AwayFromZero);
@@ -367,6 +368,12 @@ namespace EasyGames.Controllers
             order.GrandTotal = decimal.Round(grand, 2, MidpointRounding.AwayFromZero);
             order.TotalCost = decimal.Round(totalCost, 2, MidpointRounding.AwayFromZero);
             order.TotalProfit = order.GrandTotal - order.TotalCost;
+
+            // Set order status based on backorder status
+            var hasBackorders = order.Items.Any(i => i.QuantityBackordered > 0); // checks if any items have backordered quantity >0
+            // ? is ternary conditional operator - sets order.Status based on whether hasBackorders is true or false
+            // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator
+            order.Status = hasBackorders ? OrderStatuses.Pending : OrderStatuses.Fulfilled;
 
             _db.Orders.Add(order);
             await _db.SaveChangesAsync();

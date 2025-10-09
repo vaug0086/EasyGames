@@ -87,6 +87,17 @@ else
                                                                                           : "bg-light text-dark")">
                         @o.Status
                     </span>
+                    @{
+                        var hasBackorder = o.Items.Any(i => i.IsBackordered);
+                        var backorderCount = o.Items.Where(i => i.IsBackordered).Sum(i => i.QuantityBackordered);
+                    }
+                    @if (hasBackorder)
+                    {
+                        <br />
+                        <span class="badge bg-warning text-dark mt-1">
+                            <i class="bi bi-clock-history"></i> @backorderCount backordered
+                        </span>
+                    }
                 </td>
                 <td class="text-end">
                     <a asp-action="Details" asp-route-id="@o.Id" class="btn btn-sm btn-outline-secondary">Details</a>

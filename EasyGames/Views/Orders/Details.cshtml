@@ -24,8 +24,24 @@
         @foreach (var li in Model.Items)
         {
             <tr>
-                <td>@li.StockItem.Name</td>
-                <td>@li.Quantity</td>
+                <td>
+                    @li.StockItem.Name
+                    @if (li.IsBackordered)
+                    {
+                        <br />
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-clock-history"></i> @li.QuantityBackordered of @li.Quantity on backorder
+                        </span>
+                    }
+                </td>
+                <td>
+                    @li.Quantity
+                    @if (li.IsBackordered)
+                    {
+                        <br />
+                        <small class="text-muted">(@li.QuantityFulfilled fulfilled)</small>
+                    }
+                </td>
                 <td>@li.UnitPriceAtPurchase.ToString("C")</td>
                 @{
                     var total = li.UnitPriceAtPurchase * li.Quantity;

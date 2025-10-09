@@ -22,7 +22,12 @@ namespace EasyGames.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitBuyPriceAtPurchase { get; set; }  // NEW
 
- 
+        // Backorder tracking - how many units were sold more avalable stock
+        public int QuantityBackordered { get; set; }
+
+
+        // NotMapped means don't make a column for this in the DB
+        // https://www.learnentityframeworkcore.com/configuration/data-annotation-attributes/notmapped-attribute
         [NotMapped]
         public decimal LineSell => UnitPriceAtPurchase * Quantity;
 
@@ -31,6 +36,12 @@ namespace EasyGames.Models
 
         [NotMapped]
         public decimal LineProfit => LineSell - LineCost;
+
+        [NotMapped]
+        public bool IsBackordered => QuantityBackordered > 0;
+
+        [NotMapped]
+        public int QuantityFulfilled => Quantity - QuantityBackordered;
     }
 
 }
