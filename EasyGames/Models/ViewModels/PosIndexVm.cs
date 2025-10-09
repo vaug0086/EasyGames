@@ -22,7 +22,7 @@ namespace EasyGames.ViewModels
         public List<CartItem> Basket { get; set; } = new();
         public decimal Subtotal { get; set; }
 
-        //Discount stuff
+        //Discount stuff when i get it working...
         public string? CustomerPhone { get; set; }
         public string? CustomerName { get; set; }
         public decimal? DiscountAmount { get; set; }
