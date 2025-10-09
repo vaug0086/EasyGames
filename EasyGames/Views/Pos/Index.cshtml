@@ -1,0 +1,142 @@
+﻿@model EasyGames.ViewModels.PosIndexVm
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<h1 class="mb-3">Point of Sale</h1>
+
+<form method="get" asp-action="Index" class="pos-shop-switch">
+    <label for="shopId" class="form-label m-0">Shop:</label>
+    <select id="shopId" name="shopId" class="form-select" onchange="this.form.submit()" style="width:auto;">
+        @foreach (var s in Model.UserShops)
+        {
+            <option value="@s.ShopId" selected="@(s.ShopId == Model.SelectedShop.ShopId ? "selected" : null)">@s.Name</option>
+        }
+    </select>
+    <noscript><button type="submit" class="btn btn-secondary btn-sm">Load</button></noscript>
+</form>
+
+<div class="pos-layout">
+    <section>
+        @if (Model.Mode == EasyGames.ViewModels.PosScreenMode.Categories)
+        {
+            <div class="pos-meta">
+                <h2 class="m-0">Categories</h2>
+                <span class="pos-muted">Tap a category to browse</span>
+            </div>
+
+            <div class="pos-grid">
+                @foreach (var cat in Model.Categories.OrderBy(c => c.Category.ToString()))
+                {
+                    <a class="pos-tile" href="@Url.Action("Index", new { shopId = Model.SelectedShop.ShopId, category = cat.Category })">
+                        <div class="pos-tile-content">
+                            <div class="pos-tile-title">@cat.Category</div>
+                            <div class="pos-muted">@cat.ItemCount item@(cat.ItemCount == 1 ? "" : "s")</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <a class="btn btn-light btn-sm pos-back" href="@Url.Action("Index", new { shopId = Model.SelectedShop.ShopId })">← Back</a>
+                <h2 class="m-0">@Model.SelectedCategory</h2>
+                <span class="pos-muted">Tap an item to add</span>
+            </div>
+
+            <div class="pos-grid">
+                @foreach (var ss in Model.Stock)
+                {
+                    <form method="post" asp-action="Add" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                        <input type="hidden" name="stockItemId" value="@ss.StockItemId" />
+                        <input type="hidden" name="qty" value="1" />
+                        <button type="submit" class="pos-tile" aria-label="Add @ss.StockItem!.Name">
+                            @if (!string.IsNullOrWhiteSpace(ss.StockItem?.ImageUrl))
+                            {
+                                <img src="@ss.StockItem!.ImageUrl" alt="" class="pos-tile-bg" />
+                            }
+                            <div class="pos-tile-content">
+                                <div class="pos-tile-title">@ss.StockItem!.Name</div>
+                                <div class="pos-muted mt-1">@ss.InheritedSellPrice.ToString("C")</div>
+                                @if (ss.IsLowStock)
+                                {
+                                    <span class="pos-badge pos-badge--warning mt-1" title="Low stock">
+                                        <span class="pos-badge-ico" aria-hidden="true">📦</span>
+                                        <span>@ss.QtyOnHand</span>
+                                    </span>
+                                }
+                                else if (ss.QtyOnHand <= 0)
+                                {
+                                    <div class="badge text-bg-secondary mt-1">Zero</div>
+                                }
+                            </div>
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+    </section>
+
+    <aside>
+        <h2>Basket</h2>
+        @if (Model.Basket.Count == 0)
+        {
+            <p class="pos-basket-muted">No items yet. Tap a category → item to add.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr><th>Item</th><th style="width:8rem;">Qty</th><th>Line</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in Model.Basket)
+                    {
+                        <tr>
+                            <td>@line.Name<br /><small class="pos-basket-muted">@line.UnitPrice.ToString("C") ea</small></td>
+                            <td>
+                                <form method="post" asp-action="Update" class="d-flex align-items-center gap-2 m-0">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                                    <input type="hidden" name="stockItemId" value="@line.StockItemId" />
+                                    <input type="number" name="qty" value="@line.Quantity" min="0" class="form-control form-control-sm" style="width:4.5rem;" />
+                                    <button class="btn btn-secondary btn-sm">Set</button>
+                                </form>
+                            </td>
+                            <td>@line.LineTotal.ToString("C")</td>
+                            <td>
+                                <form method="post" asp-action="Remove" class="m-0">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                                    <input type="hidden" name="stockItemId" value="@line.StockItemId" />
+                                    <button class="btn btn-link btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2" class="text-end">Subtotal</th>
+                        <th>@Model.Subtotal.ToString("C")</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <form method="post" asp-action="Clear" class="mb-2 m-0">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="shopId" value="@Model.SelectedShop.ShopId" />
+                <button class="btn btn-outline-danger btn-sm">Clear Basket</button>
+            </form>
+
+            <div class="card p-3">
+                <label>Customer mobile:</label>
+                <input disabled class="form-control" placeholder="..." />
+                <button disabled class="mt-2 btn btn-success w-100">Checkout</button>
+            </div>
+        }
+    </aside>
+</div>

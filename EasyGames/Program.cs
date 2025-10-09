@@ -61,6 +61,8 @@ builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
 
 builder.Services.AddScoped<ISalesService, SalesService>();
 
+//POS service
+builder.Services.AddScoped<IPosCartService, PosCartService>();
 
 //  Requria a confirmed account, based
 builder.Services

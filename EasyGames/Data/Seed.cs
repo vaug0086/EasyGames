@@ -173,6 +173,24 @@ namespace EasyGames.Data
                 }
             }
 
+            //Create guest user to attach to walk in customers for shops
+            const string guestEmail = "guest@easygames.com";
+            var guestUser = userManager.FindByEmailAsync(guestEmail).Result;
+            if (guestUser == null)
+            {
+                guestUser = new ApplicationUser
+                {
+                    UserName = guestEmail,
+                    Email = guestEmail,
+                    EmailConfirmed = true,
+                    FullName = "Walk-in Customer"
+                };
+                var result = userManager.CreateAsync(guestUser, "Guest123!").Result;
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create guest user: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
             // Create shop and stock data
             SeedShopData(serviceProvider);
         }
