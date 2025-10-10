@@ -54,5 +54,7 @@ namespace EasyGames.Models
         public string Status { get; set; } = OrderStatuses.Pending;
 
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+
+        public bool StockReturnedOnCancel { get; set; } = false;
     }
 }

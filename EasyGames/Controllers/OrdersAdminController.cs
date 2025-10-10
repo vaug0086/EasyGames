@@ -71,35 +71,73 @@ public class OrdersAdminController : Controller
     }
 
     // POST: /OrdersAdmin/UpdateStatus
-
+    //  Modified this so that if you update an order status to cancelled
+    //  the stock is returned. Probably should add a clamp to prevent
+    //  going from cancelled to fufilled, too bad!
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, string status, string? returnUrl = null)
     {
-        var order = await _db.Orders.FirstOrDefaultAsync(o => o.Id == id);
-        if (order is null) return NotFound();
-
-        if (!OrderStatuses.All.Contains(status))
+        if (string.IsNullOrWhiteSpace(status) || !OrderStatuses.All.Contains(status))
         {
             TempData["AlertDanger"] = "Invalid status.";
+            return Redirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : Url.Action(nameof(Index))!);
         }
-        else if (!string.Equals(order.Status, status, StringComparison.Ordinal))
-        {
-            order.Status = status;
-            await _db.SaveChangesAsync();
-            TempData["AlertSuccess"] = $"Order #{order.Id} set to {status}.";
-        }
-        else
+
+        var order = await _db.Orders
+            .Include(o => o.Items)
+            .ThenInclude(oi => oi.StockItem)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order is null) return NotFound();
+
+        if (string.Equals(order.Status, status, StringComparison.Ordinal))
         {
             TempData["AlertInfo"] = $"Order #{order.Id} already {status}.";
+            return Redirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : Url.Action(nameof(Index))!);
         }
 
-        // Only redirect to a local, valid URL. Otherwise go back to Index.
-        var fallback = Url.Action(nameof(Index))!;
-        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-            return Redirect(returnUrl);
+        var illegalToCancel = new[] { "Shipped", "Completed" };
+        if (status == "Cancelled" && illegalToCancel.Contains(order.Status))
+        {
+            TempData["AlertDanger"] = $"Cannot cancel an order in status '{order.Status}'.";
+            return Redirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : Url.Action(nameof(Index))!);
+        }
 
-        return Redirect(fallback);
+        await using var tx = await _db.Database.BeginTransactionAsync();
+
+        try
+        {
+            //  Handle the cancellation. If the order is cancelled, return the stock for each item
+            if (status == "Cancelled" && !order.StockReturnedOnCancel)
+            {
+                foreach (var line in order.Items)
+                {
+                    if (line.StockItem is null)
+                        line.StockItem = await _db.StockItems.FirstOrDefaultAsync(s => s.Id == line.StockItemId);
+
+                    if (line.StockItem is not null)
+                        line.StockItem.Quantity += line.Quantity;
+                }
+                //  Prevent the order from being double canceled.
+                order.StockReturnedOnCancel = true;
+            }
+
+            order.Status = status;
+
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            TempData["AlertSuccess"] = $"Order #{order.Id} set to {status}."
+                + (status == "Cancelled" && order.StockReturnedOnCancel ? " Stock returned." : "");
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await tx.RollbackAsync();
+            TempData["AlertDanger"] = "The order was modified by another process. Please try again.";
+        }
+
+        return Redirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : Url.Action(nameof(Index))!);
     }
 
     public async Task<IActionResult> Details(int id)

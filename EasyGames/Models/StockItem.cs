@@ -42,5 +42,12 @@ namespace EasyGames.Models
         [Url]
         [Display(Name = "Image URL")]
         public string? ImageUrl { get; set; }
+        //  A time stamp for the modified row...
+        //  This prevents concurrency conflicts
+        //  If the user updated the same item between the previous save and load
+        //  the rowversion will not match and then it'll throw a concurrencyexception
+        //  Source from here: https://learn.microsoft.com/en-us/aspnet/core/data/ef-mvc/concurrency?view=aspnetcore-9.0
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

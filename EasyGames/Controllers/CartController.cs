@@ -16,7 +16,7 @@ public class CartController : Controller
     private readonly ISalesService _sales;
 
     public CartController(ICartService cart, ApplicationDbContext db, ISalesService sales)
-    { _cart = cart; _db = db; }
+    { _cart = cart; _db = db; _sales = sales; }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -63,7 +63,9 @@ public class CartController : Controller
         };
         return View(vm);
     }
-
+    //  Below is a modified function for the checkout. 
+    //  The method processes the purchase, creates an order, decrements the
+    //  stock quantity and then clears the users cart.
     [Authorize, HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Checkout(CheckoutViewModel vm)
     {
@@ -73,14 +75,17 @@ public class CartController : Controller
             ModelState.AddModelError("", "Your cart is empty.");
             return View(vm with { Items = items, Subtotal = 0 });
         }
+        //  Grab item from the database using distinct because I have no idea
+        //  what shape the database is in rn.
+        var ids = items.Select(i => i.StockItemId).Distinct().ToList();
 
-        var ids = items.Select(i => i.StockItemId).ToList();
-        var current = await _db.StockItems.AsNoTracking()
-                          .Where(s => ids.Contains(s.Id)).ToListAsync();
+        var stockItems = await _db.StockItems
+            .Where(s => ids.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id);
+
         foreach (var it in items)
         {
-            var s = current.FirstOrDefault(c => c.Id == it.StockItemId);
-            if (s is null)
+            if (!stockItems.TryGetValue(it.StockItemId, out var s))
             {
                 ModelState.AddModelError("", $"Item '{it.Name}' no longer exists.");
                 return View(vm with { Items = items, Subtotal = items.Sum(i => i.LineTotal) });
@@ -90,8 +95,22 @@ public class CartController : Controller
 
         if (!ModelState.IsValid)
             return View(vm with { Items = items, Subtotal = items.Sum(i => i.LineTotal) });
+        /* I don't think we actually need this. Becuse, don't we need to allow the stock to place
+         * even if there isn't enough? Who I've commmented out. Uncomment it or modify it depending
+         * on whatever you decided. I can't remember if it's POS stock that can go negative or what.
+        foreach (var line in items)
+        {
+            var s = stockItems[line.StockItemId];
+            if (s.Quantity < line.Quantity)
+            {
+                ModelState.AddModelError("",
+                    $"Not enough stock for {s.Name}. Requested {line.Quantity}, available {s.Quantity}.");
+                return View(vm with { Items = items, Subtotal = items.Sum(i => i.LineTotal) });
+            }
+        }
+        */
 
-
+        await using var tx = await _db.Database.BeginTransactionAsync();
 
         var order = new Order
         {
@@ -102,18 +121,38 @@ public class CartController : Controller
             Subtotal = items.Sum(i => i.LineTotal),
             GrandTotal = items.Sum(i => i.LineTotal)
         };
+        //  Decrement the stock quantites
         foreach (var it in items)
+        {
+            var s = stockItems[it.StockItemId];
+            s.Quantity -= it.Quantity; // Stock minus purchases
+
             order.Items.Add(new OrderItem
             {
                 StockItemId = it.StockItemId,
                 Quantity = it.Quantity,
                 UnitPriceAtPurchase = it.UnitPrice
             });
+        }
 
         _db.Orders.Add(order);
-        await _db.SaveChangesAsync();
-        _cart.Clear();
 
+        try
+        {
+            //  Try to commit, throw exception if race condition
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            //  Race condition. Thanks database subject!
+            //  This prevents the user modifying stock between load and save
+            await tx.RollbackAsync();
+            TempData["AlertDanger"] = "Stock levels changed during checkout. Please review your cart.";
+            return RedirectToAction(nameof(Checkout));
+        }
+
+        _cart.Clear();
         return RedirectToAction(nameof(Thanks), new { id = order.Id });
     }
 
