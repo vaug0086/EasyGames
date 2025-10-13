@@ -7,6 +7,7 @@ namespace EasyGames.ViewModels
 
     public class PosIndexVm
     {
+        //Context
         public Shop SelectedShop { get; set; } = default!;
         public List<Shop> UserShops { get; set; } = new();
 
@@ -22,7 +23,7 @@ namespace EasyGames.ViewModels
         public List<CartItem> Basket { get; set; } = new();
         public decimal Subtotal { get; set; }
 
-        //Discount stuff when i get it working...
+        //Discount
         public string? CustomerPhone { get; set; }
         public string? CustomerName { get; set; }
         public decimal? DiscountAmount { get; set; }
