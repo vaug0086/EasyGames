@@ -14,9 +14,10 @@ public class CartController : Controller
     private readonly ICartService _cart;
     private readonly ApplicationDbContext _db;
     private readonly ISalesService _sales;
+    private readonly ICustomerProfileService _profiles;
 
-    public CartController(ICartService cart, ApplicationDbContext db, ISalesService sales)
-    { _cart = cart; _db = db; _sales = sales; }
+    public CartController(ICartService cart, ApplicationDbContext db, ISalesService sales, ICustomerProfileService profiles)
+    { _cart = cart; _db = db; _sales = sales; _profiles = profiles; }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -131,9 +132,14 @@ public class CartController : Controller
             {
                 StockItemId = it.StockItemId,
                 Quantity = it.Quantity,
-                UnitPriceAtPurchase = it.UnitPrice
+                UnitPriceAtPurchase = it.UnitPrice,
+                UnitBuyPriceAtPurchase = s.BuyPrice // record buy price for profit calculation
             });
         }
+
+        // Compute totals for cost/profit so we can update loyalty
+        order.TotalCost = order.Items.Sum(i => i.UnitBuyPriceAtPurchase * i.Quantity);
+        order.TotalProfit = order.GrandTotal - order.TotalCost;
 
         _db.Orders.Add(order);
 
@@ -150,6 +156,13 @@ public class CartController : Controller
             await tx.RollbackAsync();
             TempData["AlertDanger"] = "Stock levels changed during checkout. Please review your cart.";
             return RedirectToAction(nameof(Checkout));
+        }
+
+        //  Update customer profile loyalty now that order is persisted
+        if (!string.IsNullOrWhiteSpace(order.UserId))
+        {
+            //  User is authenticated because this endpoint requires
+            await _profiles.UpdateAfterSaleAsync(order.UserId, order.TotalProfit);
         }
 
         _cart.Clear();
