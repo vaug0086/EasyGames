@@ -379,8 +379,8 @@ namespace EasyGames.Controllers
             await _db.SaveChangesAsync();
 
             _posCart.Clear(shopId);
-            // keep attached customer for next sale, or clear if you prefer:
-            // _posState.ClearCustomer(shopId);
+            // Clear attached customer for next sale
+            _posState.ClearCustomer(shopId);
 
             TempData["AlertSuccess"] = $"POS sale complete. Order #{order.Id} total {order.GrandTotal:C}.";
             return RedirectToAction(nameof(Index), new { shopId, category = returnCategory });

@@ -85,7 +85,13 @@ else
                   else
                   { <span>@o.User?.Email</span> }
                 </td>
-                <td>@o.Status</td>
+                        <td>
+                            <span class="badge @(o.Status == "Pending" ? "bg-warning text-dark"
+                                                : o.Status == "Fulfilled" ? "bg-success"
+                                                : o.Status == "Cancelled" ? "bg-secondary" : "bg-light text-dark")">
+                        @o.Status
+                    </span>
+                </td>
                 <td class="text-end">@o.GrandTotal.ToString("C")</td>
                 <td class="text-end">
                   <a class="btn btn-sm btn-outline-secondary"
