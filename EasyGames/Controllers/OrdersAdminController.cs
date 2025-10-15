@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using EasyGames.Data;
+using EasyGames.Models;
+using System.Linq;
+using EasyGames.Services;
+using EasyGames.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using EasyGames.Data;
-using EasyGames.Models;
-using EasyGames.ViewModels;
 
 namespace EasyGames.Controllers;
 
@@ -17,7 +19,15 @@ namespace EasyGames.Controllers;
 public class OrdersAdminController : Controller
 {
     private readonly ApplicationDbContext _db;
-    public OrdersAdminController(ApplicationDbContext db) => _db = db;
+    private readonly ICustomerProfileService _profiles;
+    private readonly ITierService _tiers;
+
+    public OrdersAdminController(ApplicationDbContext db, ICustomerProfileService profiles, ITierService tiers)
+    {
+        _db = db;
+        _profiles = profiles;
+        _tiers = tiers;
+    }
 
     // /OrdersAdmin?status=&q=&from=&to=&page=1&pageSize=20&sort=newest
     public async Task<IActionResult> Index(
@@ -56,9 +66,18 @@ public class OrdersAdminController : Controller
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
+        // Get unique user ids in this page
+        var userIds = items.Select(i => i.UserId).Distinct().ToList();
+
+        // Look up their profiles and build a dictionary: UserId -> Tier
+        var tiersByUserId = await _db.CustomerProfiles.AsNoTracking()
+            .Where(p => userIds.Contains(p.UserId))
+            .ToDictionaryAsync(p => p.UserId, p => p.CurrentTier);
+
         return View(new OrdersAdminIndexVm
         {
             Items = items,
+            TiersByUserId = tiersByUserId,
             Status = status,
             Q = q,
             From = from,
@@ -149,6 +168,29 @@ public class OrdersAdminController : Controller
             .FirstOrDefaultAsync(o => o.Id == id);
 
         return order is null ? NotFound() : View(order);
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> Fulfill(int id)
+    {
+        var order = await _db.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order == null) return NotFound();
+
+        order.Status = OrderStatuses.Fulfilled;
+        await _db.SaveChangesAsync();
+
+        // Recompute from fulfilled orders only
+        var lifetime = await _db.Orders
+            .Where(o => o.UserId == order.UserId && o.Status == OrderStatuses.Fulfilled)
+            .SumAsync(o => (decimal?)o.GrandTotal) ?? 0m;
+
+        var profile = await _profiles.GetOrCreateAsync(order.UserId);
+        profile.LifetimeProfitContribution = lifetime;
+        profile.CurrentTier = _tiers.ComputeTier(lifetime);
+        await _db.SaveChangesAsync();
+
+        return RedirectToAction("Details", new { id }); // or wherever you want to go
     }
 }
 

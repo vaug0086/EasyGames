@@ -16,6 +16,8 @@ namespace EasyGames.ViewModels
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
 
+        public Dictionary<string, Tier> TiersByUserId { get; set; } = new();
+
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int TotalCount { get; set; }

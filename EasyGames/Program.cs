@@ -148,3 +148,22 @@ app.MapRazorPages()
 
 app.Run();
 
+
+async Task SeedAsync(IHost app)
+{
+    using var scope = app.Services.CreateScope();
+    var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    if (!await roles.RoleExistsAsync("Staff"))
+        await roles.CreateAsync(new IdentityRole("Staff"));
+
+    // assign yourself as staff to see staff view:
+    var me = await users.FindByEmailAsync("you@example.com");
+    if (me != null && !await users.IsInRoleAsync(me, "Staff"))
+        await users.AddToRoleAsync(me, "Staff");
+}
+
+// call it once at startup (don’t keep in production)
+await SeedAsync(app);
+

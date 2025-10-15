@@ -1,60 +1,68 @@
 ﻿@model EasyGames.ViewModels.MyAccountViewModel
+@using Microsoft.AspNetCore.Identity
 @{
     ViewData["Title"] = "My Account";
+var money = (Func<decimal?, string>)(v => v.HasValue ? v.Value.ToString("C") : "");
+
 }
 
-<h2 class="mb-3">My Account</h2>
 
-<div class="alert alert-info mb-4">
-    <i class="bi bi-gear"></i>
-    <a asp-area="Identity" asp-page="/Account/Manage/Index" class="alert-link">Manage your account settings</a>
-    (email, password, profile)
-</div>
+    <div class="container my-4">
+        <h1 class="display-5 fw-bold mb-4 text-center">
+            @(Model.IsStaff ? "Admin view" : "My Account")
+        </h1>
 
-<div class="card mb-4 p-3">
-    <div><strong>Current Tier:</strong> @Model.CurrentTier</div>
-    <div><strong>Lifetime Contribution:</strong> $@Model.LifetimeProfit</div>
+        <div class="card shadow-sm mb-4"> 
+            <div class="card-body">
+                <h2 class="h4 mb-3">My Account</h2>
+                <a class="btn btn-outline-info mb-3" asp-area="Identity" asp-page="/Account/Manage/Index">
+                    Manage your account settings (email, password, profile)
+                </a>
 
-    @if (Model.CurrentTier.ToString() != "Platinum")
-    {
-        <div class="mt-3">
-            <div>Progress to next tier (target: $@Model.NextTierTarget):</div>
-            <div class="progress" style="height: 20px;">
-                <div class="progress-bar" role="progressbar"
-                     style="width:@(Model.PercentToNext * 100)%"
-                     aria-valuenow="@(Model.PercentToNext * 100)" aria-valuemin="0" aria-valuemax="100">
-                    @Math.Round(Model.PercentToNext * 100, 0)%
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Current Tier:</strong> @Model.CurrentTier</p>
+                        <p class="mb-1"><strong>Lifetime Contribution:</strong> @Model.LifetimeContribution.ToString("C")</p>
+                        <p class="mb-2">
+                            <strong>Progress to next tier (target:&nbsp;</strong>
+                            @((Model.NextTierTarget > 0 ? Model.NextTierTarget.ToString("C") : "Max"))
+                            <strong>):</strong>
+                        </p>
+                        <div class="progress" role="progressbar" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width:@Model.ProgressPercent%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    }
-    else
-    {
-        <div class="mt-3 alert alert-success">You’ve reached the highest tier 🎉</div>
-    }
-</div>
 
-<h4>My Purchases</h4>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Channel</th>
-            <th>Total</th>
-            <th>Cost</th>
-            <th>Profit (internal)</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var s in Model.Sales)
-        {
-            <tr>
-                <td>@s.Date.ToLocalTime()</td>
-                <td>@s.Channel</td>
-                <td>$@s.TotalSell</td>
-                <td>$@s.TotalCost</td>
-                <td>$@s.TotalProfit</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h4 mb-3">My Purchases</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Channel</th>
+                            <th class="text-end">Total</th>
+                          
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td>@r.CreatedUtc.ToLocalTime().ToString("dd/MM/yyyy h:mm:ss tt")</td>
+                                <td>@r.Channel</td>
+                                <td class="text-end text-nowrap">@money(r.Total)</td>
+                                
+                              
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
