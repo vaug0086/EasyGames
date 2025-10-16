@@ -39,6 +39,12 @@ renders tempdata alerts for user feedback *@
                             <a class="nav-link" asp-area="" asp-controller="Catalogue" asp-action="Index">Shop</a>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="PublicCampaigns" asp-action="Index">
+                                <i class="bi bi-megaphone"></i> Campaigns
+                            </a>
+                        </li>
+
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             <li class="nav-item">
@@ -122,6 +128,18 @@ renders tempdata alerts for user feedback *@
                                             <i class="bi bi-clipboard-check"></i> All Orders
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="EmailGroups" asp-action="Index">
+                                            <i class="bi bi-envelope-paper"></i> Email Groups
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="Campaigns" asp-action="Index">
+                                            <i class="bi bi-megaphone-fill"></i> Campaigns (Admin)
+                                        </a>
+                                    </li>
+
+
                                 </ul>
                             </li>
                         }

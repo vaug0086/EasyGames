@@ -1,4 +1,5 @@
 ﻿using EasyGames.Models;
+using EasyGames.Models.Emailing;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,12 @@ namespace EasyGames.Data
         //   // TIERING
         public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
 
+        public DbSet<EasyGames.Models.Emailing.CustomerGroup> CustomerGroups => Set<EasyGames.Models.Emailing.CustomerGroup>();
+        public DbSet<EasyGames.Models.Emailing.CustomerGroupMember> CustomerGroupMembers => Set<EasyGames.Models.Emailing.CustomerGroupMember>();
+        public DbSet<EasyGames.Models.Emailing.EmailCampaign> EmailCampaigns => Set<EasyGames.Models.Emailing.EmailCampaign>();
+        public DbSet<EasyGames.Models.Emailing.EmailCampaignRecipient> EmailCampaignRecipients => Set<EasyGames.Models.Emailing.EmailCampaignRecipient>();
+
+       
         protected override void OnModelCreating(ModelBuilder b)
         {
             base.OnModelCreating(b);
@@ -40,6 +47,11 @@ namespace EasyGames.Data
                 e.Property(o => o.TotalCost).HasPrecision(18, 2);
                 e.Property(o => o.TotalProfit).HasPrecision(18, 2);
             });
+
+            // ApplicationDbContext.OnModelCreating
+            b.Entity<EmailCampaign>().HasIndex(c => c.IsPublic);
+            b.Entity<EmailCampaign>().HasIndex(c => c.PublishedUtc);
+
 
             b.Entity<OrderItem>().Property(p => p.UnitPriceAtPurchase).HasPrecision(18, 2);
             // ADDED: buy-cost snapshot on the line item
