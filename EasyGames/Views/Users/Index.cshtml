@@ -24,67 +24,68 @@
     <div class="alert alert-success">@msg</div>
 }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Email</th>
-            <th>Full Name</th>
-            <th>Date of Birth</th>
-            <th>Id</th>
-            <th>Roles</th>
-            <th class="text-end">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var u in Model)
-        {
-            var roles = await UserManager.GetRolesAsync(u);   // <-- load roles for THIS user
-                                                              <tr>
-                                                                  <td>@u.Email</td>
-                                                                  <td>@u.FullName</td>
-                                                                  <td>@u.DateOfBirth?.ToShortDateString()</td>
-                                                                  <td><small>@u.Id</small></td>
-                                                                  <td>
-                    @if (roles.Count == 0)
-                    {
-                        <span class="text-muted">—</span>
-                    }
-                    else
-                    {
-                        foreach (var r in roles)
-                        {
-                            <span class="badge bg-secondary me-1">@r</span>
-                        }
-                    }
-                </td>
-                <td class="text-end">
-                    <a asp-action="Edit" asp-route-id="@u.Id"
-                       class="btn btn-sm btn-outline-primary me-1">Edit</a>
-
-                    <form asp-action="ToggleAdmin" method="post" class="d-inline me-1">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@u.Id" />
-                        <button class="btn btn-sm btn-outline-secondary">
-                            @(roles.Contains("Admin") ? "Remove Admin" : "Make Admin")
-                        </button>
-                    </form>
-
-                    <form asp-action="ToggleProprietor" method="post" class="d-inline me-1">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@u.Id" />
-                        <button class="btn btn-sm btn-outline-warning">
-                            @(roles.Contains("Proprietor") ? "Remove Proprietor" : "Make Proprietor")
-                        </button>
-                    </form>
-
-                    <form asp-action="Delete" method="post" class="d-inline"
-                          onsubmit="return confirm('Delete this user?');">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@u.Id" />
-                        <button class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                </td>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th class="d-none d-md-table-cell">Full Name</th>
+                <th class="d-none d-lg-table-cell">Date of Birth</th>
+                <th class="d-none d-xl-table-cell">Id</th>
+                <th>Roles</th>
+                <th style="min-width: 280px;">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                var roles = await UserManager.GetRolesAsync(u);   // <-- load roles for THIS user
+                                                                  <tr>
+                                                                      <td>
+                        <div>@u.Email</div>
+                        <small class="text-muted d-md-none">@u.FullName</small>
+                    </td>
+                    <td class="d-none d-md-table-cell">@u.FullName</td>
+                    <td class="d-none d-lg-table-cell">@u.DateOfBirth?.ToShortDateString()</td>
+                    <td class="d-none d-xl-table-cell"><small>@u.Id</small></td>
+                    <td>
+                        @if (roles.Count == 0)
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                        else
+                        {
+                            foreach (var r in roles)
+                            {
+                                <span class="badge bg-secondary me-1">@r</span>
+                            }
+                        }
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            <a asp-action="Edit" asp-route-id="@u.Id"
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+
+                            <form asp-action="ToggleAdmin" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button class="btn btn-sm btn-outline-secondary text-nowrap">
+                                    @(roles.Contains("Admin") ? "Remove Admin" : "Make Admin")
+                                </button>
+                            </form>
+
+                            @* Proprietor role is now automatically managed based on shop ownership *@
+
+                            <form asp-action="Delete" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this user?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
