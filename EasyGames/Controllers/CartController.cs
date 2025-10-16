@@ -52,9 +52,16 @@ public class CartController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    [Authorize]
+    //  Allow anonymous access to the GET so we can show a friendly message instead of an error
     public IActionResult Checkout()
     {
+        //  If user is not authenticated, send them back to the cart with an info message
+        if (!(User?.Identity?.IsAuthenticated ?? false))
+        {
+            TempData["AlertInfo"] = "You must be logged in to checkout.";
+            return RedirectToAction(nameof(Index));
+        }
+
         var items = _cart.GetItems();
         var vm = new CheckoutViewModel
         {
