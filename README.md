@@ -5,13 +5,18 @@ A modern e-commerce platform for books, toys, and games built with ASP.NET Core 
 ## ✨ Features
 
 - 🛒 **Shopping Cart** - Session-based cart with anonymous user support
-- 📦 **Inventory Management** - Complete stock tracking system
+- 📦 **Inventory Management** - Complete stock tracking system with concurrency control
 - 🏪 **Multi-Shop Support** - Physical store locations with separate inventory
 - 🕐 **Backorder System** - POS can sell beyond available stock with automatic backorder tracking
   - Orders with backordered items are marked as "Pending"
   - Orders fully fulfilled from stock are marked as "Fulfilled"
+- 💰 **Point of Sale (POS)** - In-store checkout system with shop-specific inventory
+- 🎖️ **Customer Tiering** - Automatic tier assignment (Bronze/Silver/Gold/Platinum) based on lifetime profit
+  - Tier-based discounts (0-15%) applied automatically at checkout
+- 📧 **Email Campaigns** - Customer group management with campaign creation and tracking
 - 👥 **Role-Based Access** - Admin, Proprietor, and Customer roles
-- 🔒 **Secure Authentication** - ASP.NET Core Identity integration
+  - Proprietor role automatically assigned/removed based on shop ownership
+- 🔒 **Secure Authentication** - ASP.NET Core Identity with email confirmation
 - 📱 **Responsive Design** - Mobile-friendly Bootstrap 5 interface
 
 ## 🧩 Requirements
@@ -44,13 +49,14 @@ A modern e-commerce platform for books, toys, and games built with ASP.NET Core 
 
 ## 👤 Default User Accounts
 
-The application seeds three user roles with test accounts:
+The application seeds test accounts for all roles:
 
 | Role | Email | Password | Access |
 |------|-------|----------|---------|
 | 🔧 **Admin** | `admin@easygames.com` | `Admin123!` | Full system access, user management, shop management |
 | 🏪 **Proprietor** | `proprietor@easygames.com` | `Proprietor123!` | Shop stock management, price editing |
 | 🛍️ **Customer** | `user@easygames.com` | `User123!` | Shopping, cart, order history |
+| 👤 **Guest** | `guest@easygames.com` | `Guest123!` | Walk-in customer account for POS transactions |
 
 ## 🎯 University Project
 

@@ -1,0 +1,59 @@
+﻿@model IEnumerable<EasyGames.Models.Emailing.EmailCampaign>
+@{
+    ViewData["Title"] = "Email Campaigns";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Email Campaigns</h1>
+    <a asp-action="Create" class="btn btn-primary">New Campaign</a>
+</div>
+
+@if (!(Model?.Any() ?? false))
+{
+    <div class="alert alert-info">No campaigns yet.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Subject</th>
+                    <th>Group</th>
+                    <th>Status</th>
+                    <th>Public</th>
+                    <th>Published (UTC)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@c.Name</td>
+                        <td class="text-muted">@c.Subject</td>
+                        <td>@c.Group?.Name</td>
+                        <td>@c.Status</td>
+                        <td>@(c.IsPublic ? "Yes" : "No")</td>
+                        <td>@(c.PublishedUtc?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group" aria-label="Actions">
+                                <a asp-action="Details" asp-route-id="@c.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                                <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+
+                                <form asp-action="Delete" asp-route-id="@c.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete this campaign? This cannot be undone.');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

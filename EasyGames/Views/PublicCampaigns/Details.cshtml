@@ -1,0 +1,21 @@
+﻿@model EasyGames.Models.Emailing.EmailCampaign
+@{
+    ViewData["Title"] = @Model.Name;
+}
+<div class="container-sm">
+    <div class="card shadow-sm mb-3">
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" class="card-img-top" alt="" />
+        }
+        <div class="card-body">
+            <h1 class="h4 card-title mb-1">@Model.Name</h1>
+            <div class="text-muted mb-3">@Model.Subject</div>
+            <p class="card-text" style="white-space:pre-line">@Model.Details</p>
+            @if (!string.IsNullOrWhiteSpace(Model.CtaText) && !string.IsNullOrWhiteSpace(Model.CtaLink))
+            {
+                <a href="@Model.CtaLink" class="btn btn-primary">@Model.CtaText</a>
+            }
+        </div>
+    </div>
+</div>

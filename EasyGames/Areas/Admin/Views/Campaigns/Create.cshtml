@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "New Campaign";
+    var groups = (IEnumerable<EasyGames.Models.Emailing.CustomerGroup>)ViewBag.Groups ?? [];
+}
+<h1>New Campaign</h1>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Subject</label>
+        <input name="subject" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Group</label>
+        <select name="groupId" class="form-select" required>
+            @foreach (var g in groups)
+            {
+                <option value="@g.Id">@g.Name (@(g.Members?.Count ?? 0))</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Details</label>
+        <textarea name="details" class="form-control" rows="8" required
+                  placeholder="Write the announcement"></textarea>
+    </div>
+
+    @* Given this assignment is not hosted and with blob storage, and is only for development at this stage,
+       image upload has not been made functional. Instead the user must provide links to existing publicly
+       available images. Long term this would be transitioned to a hosted blob storage like S3. *@
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label">Image URL</label>
+            <input name="imageUrl" class="form-control" placeholder="https://.../banner.jpg" />
+            <small class="form-text text-muted">Provide a URL to a publicly accessible image. File upload is not currently supported.</small>
+        </div>
+
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="isPublic" id="isPublic">
+        <label class="form-check-label" for="isPublic">Publish immediately</label>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+    </div>
+</form>

@@ -65,6 +65,9 @@ builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IPosCartService, PosCartService>();
 builder.Services.AddScoped<IPosStateService, PosStateService>();
 
+builder.Services.AddScoped<ICampaignService, CampaignService>();
+
+
 //  Requria a confirmed account, based
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(o =>
@@ -74,7 +77,12 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 //  Create a singletone emailsender interface for dev confirmation
-builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
+
+builder.Services.AddTransient<
+    Microsoft.AspNetCore.Identity.UI.Services.IEmailSender,
+    ConsoleEmailSender>();
+
+builder.Services.AddScoped<ICampaignService, CampaignService>();
 
 //  Cart constructor
 builder.Services.AddHttpContextAccessor(); //   Req for cookies from DI
@@ -137,6 +145,11 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 app.MapControllerRoute(
     name: "default",

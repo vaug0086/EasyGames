@@ -1,0 +1,31 @@
+﻿@model IEnumerable<EasyGames.Models.Emailing.EmailCampaign>
+@{
+    ViewData["Title"] = "Campaigns";
+}
+<h1>Campaigns</h1>
+
+@if (!(Model?.Any() ?? false))
+{
+    <div class="alert alert-info">No public campaigns yet.</div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var c in Model)
+        {
+            <a class="list-group-item list-group-item-action"
+               asp-controller="PublicCampaigns" asp-action="Details" asp-route-id="@c.Id">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">@c.Name</h5>
+                    <small class="text-muted">
+                        @(c.PublishedUtc?.ToString("yyyy-MM-dd HH:mm 'UTC'")
+                                        ?? c.ScheduledUtc?.ToString("yyyy-MM-dd HH:mm 'UTC'")
+                                        ?? c.CreatedUtc.ToString("yyyy-MM-dd HH:mm 'UTC'"))
+            </small>
+        </div>
+        <p class="mb-1 text-muted">@c.Subject</p>
+        <small>@c.Group?.Name</small>
+    </a>
+        }
+    </div>
+}

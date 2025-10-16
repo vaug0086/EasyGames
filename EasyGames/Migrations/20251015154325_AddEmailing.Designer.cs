@@ -4,6 +4,7 @@ using EasyGames.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyGames.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251015154325_AddEmailing")]
+    partial class AddEmailing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,8 +168,7 @@ namespace EasyGames.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -184,40 +186,19 @@ namespace EasyGames.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BodyHtml")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CtaLink")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("CtaText")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<string>("Details")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("nvarchar(160)");
-
-                    b.Property<DateTime?>("PublishedUtc")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ScheduledUtc")
                         .HasColumnType("datetime2");
@@ -234,10 +215,6 @@ namespace EasyGames.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.HasIndex("IsPublic");
-
-                    b.HasIndex("PublishedUtc");
-
                     b.ToTable("EmailCampaigns");
                 });
 
@@ -250,31 +227,26 @@ namespace EasyGames.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BounceReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CampaignId")
                         .HasColumnType("int");
 
                     b.Property<string>("DisplayName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastError")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("OpenedUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ProviderMessageId")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("QueuedUtc")
                         .HasColumnType("datetime2");
@@ -655,7 +627,7 @@ namespace EasyGames.Migrations
             modelBuilder.Entity("EasyGames.Models.Emailing.EmailCampaign", b =>
                 {
                     b.HasOne("EasyGames.Models.Emailing.CustomerGroup", "Group")
-                        .WithMany("Campaigns")
+                        .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -787,8 +759,6 @@ namespace EasyGames.Migrations
 
             modelBuilder.Entity("EasyGames.Models.Emailing.CustomerGroup", b =>
                 {
-                    b.Navigation("Campaigns");
-
                     b.Navigation("Members");
                 });
 
