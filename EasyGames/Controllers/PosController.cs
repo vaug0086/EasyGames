@@ -378,8 +378,15 @@ namespace EasyGames.Controllers
             _db.Orders.Add(order);
             await _db.SaveChangesAsync();
 
+            //  Update customer profile if a real customer was attached (don't update guest)
+            if (!string.IsNullOrEmpty(attachedId))
+            {
+                //  attachedId corresponds to a real user id from pos state
+                await _profiles.UpdateAfterSaleAsync(attachedId, order.TotalProfit);
+            }
+
             _posCart.Clear(shopId);
-            // Clear attached customer for next sale
+            //  Clear attached customer for next sale
             _posState.ClearCustomer(shopId);
 
             TempData["AlertSuccess"] = $"POS sale complete. Order #{order.Id} total {order.GrandTotal:C}.";
