@@ -4,6 +4,7 @@ using EasyGames.Data;
 using EasyGames.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Identity;
 
 // this file is all pretty standard CRUD controller stuff - just for shops
 
@@ -13,10 +14,19 @@ namespace EasyGames.Controllers
     public class ShopsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        
+        //  we need to track users and roles. This means that proprietor role is assigned automatically when the user has Shops.
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private const string ProprietorRole = "Proprietor";
 
-        public ShopsController(ApplicationDbContext context)
+        public ShopsController(ApplicationDbContext context,
+                               UserManager<ApplicationUser> userManager,
+                               RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         // GET: Shops
@@ -70,6 +80,11 @@ namespace EasyGames.Controllers
             {
                 _context.Add(shop);
                 await _context.SaveChangesAsync();
+
+                // Automatically assign Proprietor role to the new shop owner
+                // can do this over and over - no effect if they are already a proprietor
+                await SyncProprietorRoleAsync(shop.ProprietorUserId);
+
                 TempData["AlertSuccess"] = $"Shop '{shop.Name}' has been created successfully.";
                 return RedirectToAction(nameof(Index));
             }
@@ -108,8 +123,22 @@ namespace EasyGames.Controllers
             {
                 try
                 {
+                    // Get the original shop to check if proprietor changed
+                    var originalShop = await _context.Shops.AsNoTracking().FirstOrDefaultAsync(s => s.ShopId == id);
+                    var oldProprietorId = originalShop?.ProprietorUserId;
+
                     _context.Update(shop);
                     await _context.SaveChangesAsync();
+
+                    // role for the new proprietor
+                    await SyncProprietorRoleAsync(shop.ProprietorUserId);
+
+                    // if proprietor changed, also sync role for the old proprietor (they may have lost their last shop)
+                    if (oldProprietorId != null && oldProprietorId != shop.ProprietorUserId)
+                    {
+                        await SyncProprietorRoleAsync(oldProprietorId);
+                    }
+
                     TempData["AlertSuccess"] = $"Shop '{shop.Name}' has been updated successfully.";
                 }
                 catch (DbUpdateConcurrencyException)
@@ -156,8 +185,14 @@ namespace EasyGames.Controllers
             var shop = await _context.Shops.FindAsync(id);
             if (shop != null)
             {
+                var proprietorId = shop.ProprietorUserId;
+
                 _context.Shops.Remove(shop);
                 await _context.SaveChangesAsync();
+
+                // Remove Proprietor role if this was the user's last shop
+                await SyncProprietorRoleAsync(proprietorId);
+
                 TempData["AlertSuccess"] = $"Shop '{shop.Name}' has been deleted successfully.";
             }
 
@@ -167,6 +202,48 @@ namespace EasyGames.Controllers
         private bool ShopExists(int id)
         {
             return _context.Shops.Any(e => e.ShopId == id);
+        }
+
+        // manages the Proprietor role for a user based on their shop ownership.
+        // adds the role if they own at least one shop, removes it if they own none.
+        // NOTE FROM FRANK - this function written with the help of Claude Code 
+        // PROMPT:
+        // I need a function so the user should only 
+        // be assigned proprietor role if they are 
+        // assigned as the proprietor for 1 or more 
+        // shops. If they are a new proprietor, this 
+        // role should be assigned. If they are removed 
+        // as a proprietor from their last shop (or the 
+        // shop is deleted) then they should be removed 
+        // as a proprietor role.
+        // END PROMPT
+
+        // Why is this function called SyncProprietorRole Async?
+        // It syncs or "syncronizes" the proprietor role.
+        // It does this asyncronously (hence, async)
+        private async Task SyncProprietorRoleAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return;
+
+            // Ensure the Proprietor role exists
+            if (!await _roleManager.RoleExistsAsync(ProprietorRole))
+                await _roleManager.CreateAsync(new IdentityRole(ProprietorRole));
+
+            // Check if user owns any shops
+            var ownsShops = await _context.Shops.AnyAsync(s => s.ProprietorUserId == userId);
+            var hasRole = await _userManager.IsInRoleAsync(user, ProprietorRole);
+
+            // Add role if they own shops but don't have the role
+            if (ownsShops && !hasRole)
+            {
+                await _userManager.AddToRoleAsync(user, ProprietorRole);
+            }
+            // Remove role if they don't own shops but have the role
+            else if (!ownsShops && hasRole)
+            {
+                await _userManager.RemoveFromRoleAsync(user, ProprietorRole);
+            }
         }
     }
 }

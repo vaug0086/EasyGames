@@ -145,32 +145,7 @@ namespace EasyGames.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        //  ROLE TOGGLE FOR PROPRIETOR
-        // NOTE FROM FRANK - Implemeted with the help of Claude Code.
-        // Many prompts - and not copy paste
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleProprietor(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user is null) return NotFound();
-
-            if (!await _roleManager.RoleExistsAsync(ProprietorRole))
-                await _roleManager.CreateAsync(new IdentityRole(ProprietorRole));
-
-            var isProprietor = await _userManager.IsInRoleAsync(user, ProprietorRole);
-
-            var result = isProprietor
-                ? await _userManager.RemoveFromRoleAsync(user, ProprietorRole)
-                : await _userManager.AddToRoleAsync(user, ProprietorRole);
-
-            TempData["Msg"] = result.Succeeded ? "Proprietor role updated." :
-                string.Join("; ", result.Errors.Select(e => e.Description));
-
-            return RedirectToAction(nameof(Index));
-        }
-        
-        // END REFERENCE TO CLAUDE
+        //  Proprietor role is now automatically managed based on shop ownership in ShopsController
 
         //  DELETE
 
