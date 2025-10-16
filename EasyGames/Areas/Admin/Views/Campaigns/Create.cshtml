@@ -33,10 +33,14 @@
                   placeholder="Write the announcement"></textarea>
     </div>
 
+    @* Given this assignment is not hosted and with blob storage, and is only for development at this stage,
+       image upload has not been made functional. Instead the user must provide links to existing publicly
+       available images. Long term this would be transitioned to a hosted blob storage like S3. *@
     <div class="row g-3">
         <div class="col-md-8">
             <label class="form-label">Image URL</label>
             <input name="imageUrl" class="form-control" placeholder="https://.../banner.jpg" />
+            <small class="form-text text-muted">Provide a URL to a publicly accessible image. File upload is not currently supported.</small>
         </div>
 
     <div class="form-check">

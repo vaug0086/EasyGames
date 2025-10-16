@@ -36,10 +36,13 @@
         <textarea name="details" class="form-control" rows="8" required>@Model.Details</textarea>
     </div>
 
+    @* Given this assignment is not hosted and with blob storage, and is only for development at this stage,
+       image upload has not been made functional. Instead the user must provide links to existing publicly
+       available images. Long term this would be transitioned to a hosted blob storage like S3. *@
     <div class="mb-3">
         <label class="form-label">Image URL (optional)</label>
         <input name="imageUrl" class="form-control" value="@Model.ImageUrl" placeholder="https://example.com/banner.jpg" />
-        <div class="form-text">Must be an absolute http/https URL.</div>
+        <div class="form-text">Provide a URL to a publicly accessible image. File upload is not currently supported. Must be an absolute http/https URL.</div>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))

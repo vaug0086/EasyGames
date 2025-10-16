@@ -33,8 +33,11 @@ namespace EasyGames.Models.Emailing
         [Required, MaxLength(160)] public string Name { get; set; } = "";
         [Required, MaxLength(200)] public string Subject { get; set; } = "";
 
-        // Authoring fields 
+        // Authoring fields
         [Required] public string Details { get; set; } = "";          // plain-text email body
+        // Given this assignment is not hosted and with blob storage, and is only for development at this stage,
+        // image upload has not been made functional. Instead the user must provide links to existing publicly
+        // available images. Long term this would be transitioned to a hosted blob storage like S3.
         [MaxLength(500)] public string? ImageUrl { get; set; }         // website-only
         [MaxLength(80)] public string? CtaText { get; set; }          // website-only
         [MaxLength(500)] public string? CtaLink { get; set; }          // website-only

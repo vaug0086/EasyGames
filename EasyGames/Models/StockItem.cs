@@ -39,6 +39,9 @@ namespace EasyGames.Models
         [StringLength(1000)]
         public string? Description { get; set; }
 
+        //  Given this assignment is not hosted and with blob storage, and is only for development at this stage,
+        //  image upload has not been made functional. Instead the user must provide links to existing publicly
+        //  available images. Long term this would be transitioned to a hosted blob storage like S3.
         [Url]
         [Display(Name = "Image URL")]
         public string? ImageUrl { get; set; }

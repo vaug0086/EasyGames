@@ -50,9 +50,13 @@ That's the edit view and the more stuff you can edit the more of the edit view i
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
+            @* Given this assignment is not hosted and with blob storage, and is only for development at this stage,
+               image upload has not been made functional. Instead the user must provide links to existing publicly
+               available images. Long term this would be transitioned to a hosted blob storage like S3. *@
             <div class="form-group">
                 <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
+                <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                <small class="form-text text-muted">Provide a URL to a publicly accessible image. File upload is not currently supported.</small>
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
             <div class="form-group">
